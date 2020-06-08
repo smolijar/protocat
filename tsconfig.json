@@ -1,0 +1,17 @@
+{
+  "include": ["src/**/*", "dangerfile.ts"],
+  "exclude": ["dangerfile.ts"],
+  "compilerOptions": {
+    "target": "ES2019",
+    "module": "CommonJS",
+    "lib": ["ES2019", "DOM"],
+    "allowJs": true,
+    "incremental": true,
+    "checkJs": true,
+    "sourceMap": true,
+    "outDir": "dist",
+    "rootDir": "src",
+    "strict": true,
+    "moduleResolution": "node"
+  }
+}

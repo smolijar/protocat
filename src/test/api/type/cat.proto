@@ -1,0 +1,7 @@
+syntax = "proto3";
+
+package cats;
+
+message Cat {
+    string name = 1;
+}

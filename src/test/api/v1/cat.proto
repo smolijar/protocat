@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package cats.v1;
+
+import "type/cat.proto";
+
+message GetCatRequest {
+    string name = 1;
+}
+
+message WatchCatsRequest {
+}
+
+message FeedCatsRequest {
+    string food = 1;
+}
+
+message ShareLocationRequest {
+    int32 lng = 1;
+    int32 lat = 2;
+}
+
+message ShareLocationResponse {
+    float travelled_meters = 1;
+}
+
+service Cat {
+    // Get cat by name
+    rpc GetCat (GetCatRequest) returns (cats.Cat) {};
+    // Watch new cats
+    rpc WatchCats (WatchCatsRequest) returns (stream cats.Cat) {};
+    // Send food, receive incoming consumers
+    rpc ShareLocation (stream ShareLocationRequest) returns (ShareLocationResponse) {};
+    // Send food, receive incoming consumers
+    rpc FeedCats (stream FeedCatsRequest) returns (stream cats.Cat) {};
+}

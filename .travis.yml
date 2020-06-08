@@ -1,0 +1,13 @@
+language: node_js
+node_js:
+- '10'
+- '12'
+- '13'
+- '14'
+
+script:
+- npm run cs:prettier:check
+- npm run cs:eslint:check
+- npm run build
+- npm run test:coverage
+- npm run test:codecov

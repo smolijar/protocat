@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package cats.v1;
+
+message Hello {
+    string name = 1;
+}
+
+service Greeting {
+    rpc Unary (Hello) returns (Hello) {};
+    rpc ServerStream (Hello) returns (stream Hello) {};
+    rpc ClientStream (stream Hello) returns (Hello) {};
+    rpc Bidi (stream Hello) returns (stream Hello) {};
+}

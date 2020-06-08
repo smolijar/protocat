@@ -1,0 +1,56 @@
+{
+  "name": "protocat",
+  "description": "Modern, minimalist type-safe gRPC framework for Node.js",
+  "version": "0.0.0",
+  "author": "Jaroslav Šmolík <grissius@gmail.com>",
+  "main": "./dist/index.js",
+  "files": [
+    "dist/*"
+  ],
+  "license": "MIT",
+  "keywords": [
+    "grpc",
+    "middleware",
+    "framework",
+    "node",
+    "microservice",
+    "api",
+    "server"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "build:proto": "rm -rf ./dist/test/api && mkdir -p ./dist/test/api && grpc_tools_node_protoc --js_out=import_style=commonjs,binary:./dist/test/api --ts_out=generate_package_definition:./dist/test/api --grpc_out=grpc_js:./dist/test/api -I ./src/test/api ./src/test/api/**/*.proto",
+    "postinstall": "npm run build:proto",
+    "pretest": "npm run build:proto",
+    "test": "jest --runInBand --verbose",
+    "test:coverage": "npm run test -- --collectCoverage",
+    "test:codecov": "codecov",
+    "prepare": "npm run build",
+    "check": "npm-check -i app -i errors -i config -i index & exit 0",
+    "cs:eslint:check": "eslint --ignore-path .gitignore '**/*.ts' -f codeframe",
+    "cs:eslint:fix": "npm run cs:eslint:check -- --fix",
+    "cs:prettier:check": "prettier --ignore-path .gitignore --check '**/*.{ts,js,json,md}'",
+    "cs:prettier:fix": "npm run cs:prettier:check -- --write '**/*.{ts,js,json,md}'",
+    "cs:eclint:check": "eclint check '**/*'",
+    "cs:eclint:fix": "eclint fix '**/*'"
+  },
+  "dependencies": {
+    "@grpc/grpc-js": "^1.0.5"
+  },
+  "devDependencies": {
+    "@ackee/styleguide-backend-config": "^0.1.6",
+    "@types/google-protobuf": "^3.7.2",
+    "@types/jest": "^25.2.1",
+    "codecov": "^3.6.5",
+    "google-protobuf": "^3.12.2",
+    "grpc-tools": "^1.9.0",
+    "grpc_tools_node_protoc_ts": "^4.1.0",
+    "husky": "^4.2.5",
+    "jest": "^26.0.1",
+    "lint-staged": "^10.2.1",
+    "npm-check": "^5.9.2",
+    "prettier": "^2.0.5",
+    "ts-jest": "^26.1.0",
+    "typescript": "^3.8.3"
+  }
+}
