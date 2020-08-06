@@ -4,10 +4,18 @@ node_js:
 - '12'
 - '13'
 - '14'
-
 script:
 - npm run cs:prettier:check
 - npm run cs:eslint:check
 - npm run build
 - npm run test:coverage
 - npm run test:codecov
+deploy:
+  provider: npm
+  email: grissius@gmail.com
+  api_key:
+    secure: SDAMECTIz167ErU0brxrOsMpms1woNIV0ZBA/f7leUnwciN6Fkh6noe6IWiYU/IG+pj0r/j8oHNFDRtaEnawRnsEfOjReUJrsFVOmT4oWFBWtDHKiiZolUyE4AUErWE8H6OUDV8XLk10Cr2Ol60RZRVgODBRdiIj/OCWMKRnkyHNDyA+ovf034BxFm9dJxMS6AgtwSsuoZnkQbg0S+hBRvfp2aJwQcQxf7gP174LdMJm5Qf5WhrW/rC4UTKIXxkiHIFHeVQXkBVECtx+tP6gYL/C3fiyYLTf4ji9bMYfGl9XOf0PwUz1DN79P80zDj1e8tPcsGmRPsCqKjcq+7VLYMGegF48rfyuChb6TtrgB93Fpu6SukLDBy6dLkRpdcjApZPEcsubkeDe6XaZ32uqszRcy07Ede9CZe1Va/mgI1V12WfBYjx09D3NR6MPN5MXrtSBMcPvy9vmEurArzsUgEkHXG90m+M8elhLXrSKZ+5iCCA6Bckk8Y0MWdK+TfZWEBoiiQljvjmZcqFbflp4mihrmxAxufbL6Yhp3J1uW8r2J4CnrCOch2r6EFe9kd3YFLqR8SPjxUSQyiXAi4EMcfKSD/H5pXmjMRVOR3zlWx3sGQZY2T/+Kpi+yXz8auAefFk4qMaW8jPYf7y+aJY0v1AyVDx6Hy0NxYKW4zQsM8o=
+  on:
+    tags: true
+    repo: grissius/protocat
+  skip_cleanup: 'true'
