@@ -42,6 +42,7 @@
     "@types/google-protobuf": "^3.7.2",
     "@types/jest": "^25.2.1",
     "codecov": "^3.6.5",
+    "eclint": "^2.8.1",
     "google-protobuf": "^3.12.2",
     "grpc-tools": "^1.9.0",
     "grpc_tools_node_protoc_ts": "^4.1.0",
