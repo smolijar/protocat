@@ -39,11 +39,15 @@ export type ServiceHandlerBidi<Req, Res> = (
   next: NextFn
 ) => any
 
-export type Middleware =
-  | ServiceHandlerUnary<any, any>
-  | ServiceHandlerServerStream<any, any>
-  | ServiceHandlerClientStream<any, any>
-  | ServiceHandlerBidi<any, any>
+type AnyContext =
+  | (ProtoCatContext<any, CallType.UNARY> & grpc.ServerUnaryCall<any, any>)
+  | (ProtoCatContext<any, CallType.SERVER_STREAM> &
+      grpc.ServerWritableStream<any, any>)
+  | (ProtoCatContext<any, CallType.CLIENT_STREAM> &
+      grpc.ServerReadableStream<any, any>)
+  | (ProtoCatContext<any, CallType.BIDI> & grpc.ServerDuplexStream<any, any>)
+
+export type Middleware = (ctx: AnyContext, next: NextFn) => any
 
 /** Convert a single method definition to service handler type */
 type MethodDef2ServiceHandler<H> = H extends grpc.MethodDefinition<
