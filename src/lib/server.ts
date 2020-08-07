@@ -81,6 +81,7 @@ const wrapToHandler = (
     Object.assign(call, {
       trailingMetadata,
       initialMetadata,
+      path: methodDefinition.path,
       flushInitialMetadata: () => call.sendMetadata(initialMetadata),
       type,
     })

@@ -1,17 +1,24 @@
 import * as grpc from '@grpc/grpc-js'
 import { RemoveIdxSgn } from './type-helpers'
 import { CallType } from './call-types'
+import { Message } from 'google-protobuf'
 
 /** ProtoCat context enrichment for incoming calls */
-export type ProtoCatContext<Res, Type extends CallType> = {
+export type ProtoCatContext<Req, Res, Type extends CallType> = {
   /** Server initial metadata (sent automatically for unary / client stream) */
   initialMetadata: grpc.Metadata
   /** Manually send initial metadata for server stream / bidi */
   flushInitialMetadata: () => void
   /** Trailing metadata (sent automatically) */
   trailingMetadata: grpc.Metadata
+  /** RPC path "/[package].[service]/[method]", e.g. /cats.v1.Cat/GetCat */
+  path: string
   /** Type of call */
   type: Type
+  /** Request message: only unary and server-stream */
+  request?: Req
+  /** Response message: only unary and client-stream */
+  response?: Res
 } & (Type extends CallType.UNARY | CallType.CLIENT_STREAM
   ? {
       /** Ready response instance initialized for every call */
@@ -21,31 +28,35 @@ export type ProtoCatContext<Res, Type extends CallType> = {
 
 export type NextFn = () => Promise<void>
 export type ServiceHandlerUnary<Req, Res> = (
-  call: ProtoCatContext<Res, CallType.UNARY> & grpc.ServerUnaryCall<Req, Res>,
+  call: ProtoCatContext<Req, Res, CallType.UNARY> &
+    grpc.ServerUnaryCall<Req, Res>,
   next: NextFn
 ) => any
 export type ServiceHandlerServerStream<Req, Res> = (
-  call: ProtoCatContext<Res, CallType.SERVER_STREAM> &
+  call: ProtoCatContext<Req, Res, CallType.SERVER_STREAM> &
     grpc.ServerWritableStream<Req, Res>,
   next: NextFn
 ) => any
 export type ServiceHandlerClientStream<Req, Res> = (
-  call: ProtoCatContext<Res, CallType.CLIENT_STREAM> &
+  call: ProtoCatContext<Req, Res, CallType.CLIENT_STREAM> &
     grpc.ServerReadableStream<Req, Res>,
   next: NextFn
 ) => any
 export type ServiceHandlerBidi<Req, Res> = (
-  call: ProtoCatContext<Res, CallType.BIDI> & grpc.ServerDuplexStream<Req, Res>,
+  call: ProtoCatContext<Req, Res, CallType.BIDI> &
+    grpc.ServerDuplexStream<Req, Res>,
   next: NextFn
 ) => any
 
 type AnyContext =
-  | (ProtoCatContext<any, CallType.UNARY> & grpc.ServerUnaryCall<any, any>)
-  | (ProtoCatContext<any, CallType.SERVER_STREAM> &
-      grpc.ServerWritableStream<any, any>)
-  | (ProtoCatContext<any, CallType.CLIENT_STREAM> &
-      grpc.ServerReadableStream<any, any>)
-  | (ProtoCatContext<any, CallType.BIDI> & grpc.ServerDuplexStream<any, any>)
+  | (ProtoCatContext<Message, Message, CallType.UNARY> &
+      grpc.ServerUnaryCall<Message, Message>)
+  | (ProtoCatContext<Message, Message, CallType.SERVER_STREAM> &
+      grpc.ServerWritableStream<Message, Message>)
+  | (ProtoCatContext<Message, Message, CallType.CLIENT_STREAM> &
+      grpc.ServerReadableStream<Message, Message>)
+  | (ProtoCatContext<Message, Message, CallType.BIDI> &
+      grpc.ServerDuplexStream<Message, Message>)
 
 export type Middleware = (ctx: AnyContext, next: NextFn) => any
 
