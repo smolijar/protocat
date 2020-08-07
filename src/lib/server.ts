@@ -11,7 +11,7 @@ export class Server {
   /** Map of loaded generated method stubs */
   public methodDefinitions: Record<string, grpc.MethodDefinition<any, any>>
   /** Map of loaded method service implementations */
-  public serviceHandlers: Record<string, Middleware>
+  public serviceHandlers: Record<string, Middleware[]>
   /** Global middleware functions */
   public middleware: Middleware[]
   constructor(options?: ChannelOptions) {
@@ -32,18 +32,20 @@ export class Server {
       // Path is FQN with namespace to avoid collisions
       const key = serviceDefinition[methodName].path
       this.methodDefinitions[key] = serviceDefinition[methodName]
-      // @ts-ignore
-      this.serviceHandlers[key] = serviceImplementation[methodName]
+      this.serviceHandlers[key] = (this.serviceHandlers[key] || []).concat(
+        // @ts-ignore
+        serviceImplementation[methodName]
+      )
     }
   }
 
   registerHandlers() {
     for (const methodName in this.methodDefinitions) {
       const methodDefinition = this.methodDefinitions[methodName]
-      const methodHandler: any = this.serviceHandlers[methodName] // HandlerCS<any, any> | HandlerU<any, any> | HandlerBS<any, any> | HandlerSS<any, any>
+      const methodHandlers: any[] = this.serviceHandlers[methodName] // HandlerCS<any, any>[] | HandlerU<any, any>[] | HandlerBS<any, any>[] | HandlerSS<any, any>[]
       const wrappedHandler = wrapToHandler(
         methodDefinition,
-        composeMiddleware([...this.middleware, methodHandler])
+        composeMiddleware([...this.middleware, ...methodHandlers])
       )
       const type = stubToType(methodDefinition)
       this.server.register(

@@ -28,12 +28,16 @@ describe('HelloService (boring, predictable and exhaustive)', () => {
   })
   test('addService', () => {
     server.addService(GreetingService, {
-      unary: call => {
-        call.initialMetadata.set('type', 'initialUnary')
-        call.initialMetadata.set('client', call.metadata.get('client')[0])
-        call.trailingMetadata.set('type', 'trailingUnary')
-        return call.response.setName(call.request?.getName() ?? '')
-      },
+      unary: [
+        call => {
+          call.initialMetadata.set('type', 'initialUnary')
+          call.initialMetadata.set('client', call.metadata.get('client')[0])
+          call.trailingMetadata.set('type', 'trailingUnary')
+        },
+        call => {
+          call.response.setName(call.request?.getName() ?? '')
+        },
+      ],
       serverStream: call => {
         call.initialMetadata.set('type', 'initialServerStream')
         call.initialMetadata.set('client', call.metadata.get('client')[0])

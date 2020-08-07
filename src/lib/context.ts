@@ -65,5 +65,9 @@ type MethodDef2ServiceHandler<H> = H extends grpc.MethodDefinition<
 
 /** Create service handler type for whole client definition */
 export type ServiceImplementation<T> = RemoveIdxSgn<
-  { [M in keyof T]: MethodDef2ServiceHandler<T[M]> }
+  {
+    [M in keyof T]:
+      | MethodDef2ServiceHandler<T[M]>
+      | Array<MethodDef2ServiceHandler<T[M]>>
+  }
 >
