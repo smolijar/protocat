@@ -123,10 +123,10 @@ describe('Error handling', () => {
         clientMeta.set('catch', 'true')
         clientMeta.set('type', type)
         await new Promise<Hello>((resolve, reject) => {
-          const stream = client.serverStream(new Hello(), clientMeta)
-          stream.on('data', hello => hello)
-          stream.on('end', () => resolve())
-          stream.on('error', (e: any) => (e.code === 1 ? resolve() : reject(e)))
+          const call = client.serverStream(new Hello(), clientMeta)
+          call.on('data', hello => hello)
+          call.on('end', () => resolve())
+          call.on('error', (e: any) => (e.code === 1 ? resolve() : reject(e)))
         })
         expect(lastError.message).toMatch(
           new RegExp(`serverStream-${type}-error`)
@@ -141,12 +141,12 @@ describe('Error handling', () => {
         test('Throws', async () => {
           await expect(
             new Promise<Hello>((resolve, reject) => {
-              const stream = client.serverStream(new Hello(), clientMeta)
-              stream.on('end', () => resolve())
-              metaP = new Promise(resolve => stream.on('metadata', resolve))
+              const call = client.serverStream(new Hello(), clientMeta)
+              call.on('end', () => resolve())
+              metaP = new Promise(resolve => call.on('metadata', resolve))
 
               // Does not emit `status`: status object is in error on failure
-              stream.on('error', e => {
+              call.on('error', e => {
                 status = e as any
                 reject(e)
               })
@@ -236,10 +236,10 @@ describe('Error handling', () => {
         clientMeta.set('catch', 'true')
         clientMeta.set('type', type)
         await new Promise<Hello>((resolve, reject) => {
-          const stream = client.bidi(clientMeta)
-          stream.on('data', hello => hello)
-          stream.on('end', () => resolve())
-          stream.on('error', (e: any) => (e.code === 1 ? resolve() : reject(e)))
+          const call = client.bidi(clientMeta)
+          call.on('data', hello => hello)
+          call.on('end', () => resolve())
+          call.on('error', (e: any) => (e.code === 1 ? resolve() : reject(e)))
         })
         expect(lastError.message).toMatch(new RegExp(`bidi-${type}-error`))
       })
@@ -251,11 +251,11 @@ describe('Error handling', () => {
         test('Throws', async () => {
           await expect(
             new Promise<Hello>((resolve, reject) => {
-              const stream = client.bidi(clientMeta)
-              stream.on('end', () => resolve())
-              metaP = new Promise(resolve => stream.on('metadata', resolve))
+              const call = client.bidi(clientMeta)
+              call.on('end', () => resolve())
+              metaP = new Promise(resolve => call.on('metadata', resolve))
               // Does not emit `status`: status object is in error on failure
-              stream.on('error', e => {
+              call.on('error', e => {
                 status = e as any
                 reject(e)
               })

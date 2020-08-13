@@ -196,7 +196,7 @@ server.use(
 - [ ] Type safety
 
 - [x] call / context terminology
-- [ ] call / stream terminology
+- [x] call / stream terminology
 - [ ] metaS / metaP test naming confusion
 - [ ] metadata readme section
 - [ ] starter project

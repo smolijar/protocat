@@ -120,14 +120,14 @@ describe('HelloService (boring, predictable and exhaustive)', () => {
     test('Response stream', async () => {
       let acc = ''
       await new Promise<Hello>((resolve, reject) => {
-        const stream = client.serverStream(new Hello(), clientMeta)
-        metaP = new Promise(resolve => stream.on('metadata', resolve))
-        metaS = new Promise(resolve => stream.on('status', resolve))
-        stream.on('data', (hello: Hello) => {
+        const call = client.serverStream(new Hello(), clientMeta)
+        metaP = new Promise(resolve => call.on('metadata', resolve))
+        metaS = new Promise(resolve => call.on('status', resolve))
+        call.on('data', (hello: Hello) => {
           acc = `${acc}${hello.getName()}`
         })
-        stream.on('end', () => resolve())
-        stream.on('error', (e: any) => (e.code === 1 ? resolve() : reject(e)))
+        call.on('end', () => resolve())
+        call.on('error', (e: any) => (e.code === 1 ? resolve() : reject(e)))
       })
       expect(acc).toMatchInlineSnapshot('"WorldWorldWorldWorldWorld"')
     })
@@ -154,15 +154,15 @@ describe('HelloService (boring, predictable and exhaustive)', () => {
     clientMeta.set('client', 'clientStreamClientMeta')
     test('Client stream', async () => {
       const res = await new Promise<Hello>((resolve, reject) => {
-        const stream = client.clientStream(clientMeta, (err, res) =>
+        const call = client.clientStream(clientMeta, (err, res) =>
           err ? reject(err) : resolve(res)
         )
-        metaP = new Promise(resolve => stream.on('metadata', resolve))
-        metaS = new Promise(resolve => stream.on('status', resolve))
+        metaP = new Promise(resolve => call.on('metadata', resolve))
+        metaS = new Promise(resolve => call.on('status', resolve))
         for (let i = 0; i < 10; ++i) {
-          stream.write(new Hello().setName(String(i)))
+          call.write(new Hello().setName(String(i)))
         }
-        stream.end()
+        call.end()
       })
       expect(res.getName()).toMatchInlineSnapshot('"0123456789"')
     })
@@ -189,17 +189,17 @@ describe('HelloService (boring, predictable and exhaustive)', () => {
     clientMeta.set('client', 'bidiClientMeta')
     test('Bidi stream', async () => {
       await new Promise<Hello>((resolve, reject) => {
-        const stream = client.bidi(clientMeta)
+        const call = client.bidi(clientMeta)
         let cnt = 0
-        stream.write(new Hello().setName('foo'))
-        metaP = new Promise(resolve => stream.on('metadata', resolve))
-        metaS = new Promise(resolve => stream.on('status', resolve))
-        stream.on('end', resolve)
-        stream.on('data', res => {
+        call.write(new Hello().setName('foo'))
+        metaP = new Promise(resolve => call.on('metadata', resolve))
+        metaS = new Promise(resolve => call.on('status', resolve))
+        call.on('end', resolve)
+        call.on('data', res => {
           if (cnt++ < 3) {
-            stream.write(new Hello().setName('foo'))
+            call.write(new Hello().setName('foo'))
           } else {
-            stream.end()
+            call.end()
           }
         })
       })

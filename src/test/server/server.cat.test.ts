@@ -77,44 +77,43 @@ describe('CatService (real world example)', () => {
   test('WatchCats (client-cancelled server side stream)', async () => {
     const client = new CatClient(ADDR, ChannelCredentials.createInsecure())
     await new Promise<Cat>((resolve, reject) => {
-      const stream = client.watchCats(new WatchCatsRequest())
+      const call = client.watchCats(new WatchCatsRequest())
       const seenCats: string[] = []
-      stream.on('data', cat => {
+      call.on('data', cat => {
         seenCats.push(cat.getName())
         if (seenCats.length > 10) {
-          stream.cancel()
+          call.cancel()
           resolve()
         }
       })
-      stream.on('error', (e: any) => (e.code === 1 ? resolve() : reject(e)))
+      call.on('error', (e: any) => (e.code === 1 ? resolve() : reject(e)))
     })
   })
   test('ShareLocation (client streaming)', async () => {
     const client = new CatClient(ADDR, ChannelCredentials.createInsecure())
     const res = await new Promise<ShareLocationResponse>((resolve, reject) => {
-      const stream = client.shareLocation((err, res) =>
+      const call = client.shareLocation((err, res) =>
         err ? reject(err) : resolve(res)
       )
       for (let i = 0; i < 10; ++i) {
-        stream.write(new ShareLocationRequest().setLat(i * 2).setLng(i))
+        call.write(new ShareLocationRequest().setLat(i * 2).setLng(i))
       }
-      stream.end()
+      call.end()
     })
     expect(res.getTravelledMeters()).toBeGreaterThan(0)
   })
   test('FeedCats (bidi)', async () => {
     const client = new CatClient(ADDR, ChannelCredentials.createInsecure())
     await new Promise<ShareLocationResponse>((resolve, reject) => {
-      const stream = client.feedCats()
-      // patchEmitter(stream, 'bidi CLIENT')
+      const call = client.feedCats()
       let fedCats = 0
-      stream.write(new FeedCatsRequest().setFood('fish'))
-      stream.on('end', resolve)
-      stream.on('data', res => {
+      call.write(new FeedCatsRequest().setFood('fish'))
+      call.on('end', resolve)
+      call.on('data', res => {
         if (fedCats++ < 3) {
-          stream.write(new FeedCatsRequest().setFood('fish'))
+          call.write(new FeedCatsRequest().setFood('fish'))
         } else {
-          stream.end()
+          call.end()
         }
       })
     })
