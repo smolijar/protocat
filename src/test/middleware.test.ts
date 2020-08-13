@@ -1,5 +1,5 @@
 import { composeMiddleware } from '../lib/middleware'
-import { Middleware } from '../lib/context'
+import { Middleware } from '../lib/call'
 
 describe('Middleware', () => {
   describe('Compose', () => {
@@ -9,7 +9,7 @@ describe('Middleware', () => {
       let acc = ''
       await composeMiddleware(
         chain.split('').map(
-          (char): Middleware => async (ctx, next) => {
+          (char): Middleware => async (call, next) => {
             acc += char
             await new Promise(resolve => setTimeout(resolve, Math.random() * 5))
             await next()
@@ -26,7 +26,7 @@ describe('Middleware', () => {
       let acc = ''
       await composeMiddleware(
         chain.split('').map(
-          (char): Middleware => (ctx, next) => {
+          (char): Middleware => (call, next) => {
             acc += char
           }
         )
@@ -35,14 +35,14 @@ describe('Middleware', () => {
     })
     test('Error handling', async () => {
       let lastErr = ''
-      const syncError: Middleware = (ctx, next) => {
+      const syncError: Middleware = (call, next) => {
         throw new Error('syncError')
       }
-      const asyncError: Middleware = (ctx, next) =>
+      const asyncError: Middleware = (call, next) =>
         Promise.reject(new Error('asyncError'))
       const dud1: Middleware = jest.fn()
       const dud2: Middleware = jest.fn()
-      const catcher: Middleware = async (ctx, next) => {
+      const catcher: Middleware = async (call, next) => {
         lastErr = await next().catch(e => e.message)
       }
       await composeMiddleware([catcher, dud1, syncError, dud2])(

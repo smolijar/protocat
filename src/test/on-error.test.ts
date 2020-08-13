@@ -18,43 +18,43 @@ describe('Error handling', () => {
   afterAll(() => server.stop())
   test('Setup', async () => {
     server.addService(GreetingService, {
-      unary: ctx => {
+      unary: call => {
         throw new Error('unary-error')
       },
-      serverStream: ctx => {
-        if (ctx.metadata.getMap().type === 'sync') {
+      serverStream: call => {
+        if (call.metadata.getMap().type === 'sync') {
           throw new Error('serverStream-sync-error')
         } else {
-          ctx.emit('error', new Error('serverStream-stream-error'))
+          call.emit('error', new Error('serverStream-stream-error'))
         }
       },
-      clientStream: ctx => {
-        if (ctx.metadata.getMap().type === 'sync') {
+      clientStream: call => {
+        if (call.metadata.getMap().type === 'sync') {
           throw new Error('clientStream-sync-error')
         } else {
-          ctx.emit('error', new Error('clientStream-stream-error'))
+          call.emit('error', new Error('clientStream-stream-error'))
         }
       },
-      bidi: ctx => {
-        if (ctx.metadata.getMap().type === 'sync') {
+      bidi: call => {
+        if (call.metadata.getMap().type === 'sync') {
           throw new Error('bidi-sync-error')
         } else {
-          ctx.emit('error', new Error('bidi-stream-error'))
+          call.emit('error', new Error('bidi-stream-error'))
         }
       },
     })
     server.use(
-      onError((e, ctx) => {
-        ctx.initialMetadata.set('onerror', `${ctx.type}-onerror`)
-        ctx.trailingMetadata.set('onerror', `${ctx.type}-onerror`)
-        if (ctx.metadata.getMap().catch) {
+      onError((e, call) => {
+        call.initialMetadata.set('onerror', `${call.type}-onerror`)
+        call.trailingMetadata.set('onerror', `${call.type}-onerror`)
+        if (call.metadata.getMap().catch) {
           lastError = e
           if (
-            ctx.type === CallType.SERVER_STREAM ||
-            ctx.type === CallType.BIDI
+            call.type === CallType.SERVER_STREAM ||
+            call.type === CallType.BIDI
           ) {
             // sync error not re-thrown on stream response, should end
-            ctx.end()
+            call.end()
           }
         } else {
           // Handler can be sync or async
@@ -65,9 +65,9 @@ describe('Error handling', () => {
         }
       })
     )
-    server.use((ctx, next) => {
-      ctx.initialMetadata.set('initial', ctx.type)
-      ctx.trailingMetadata.set('trailing', `${ctx.type}-trailing`)
+    server.use((call, next) => {
+      call.initialMetadata.set('initial', call.type)
+      call.trailingMetadata.set('trailing', `${call.type}-trailing`)
     })
     await server.start(ADDR, ServerCredentials.createInsecure())
   })

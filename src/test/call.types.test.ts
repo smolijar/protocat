@@ -3,7 +3,7 @@ import {
   GreetingService,
   IGreetingService,
 } from '../../dist/test/api/v1/hello_grpc_pb'
-import { ServiceImplementation } from '../lib/context'
+import { ServiceImplementation } from '../lib/call'
 
 describe('Context extension types', () => {
   interface MyContext {
@@ -12,13 +12,13 @@ describe('Context extension types', () => {
   const server = new Server<MyContext>()
 
   // Inferred middleware context
-  server.use((ctx, next) => {
-    ctx.uid = '123'
+  server.use((call, next) => {
+    call.uid = '123'
   })
 
   // Explicit middleware context
-  const mdw: Middleware<MyContext> = (ctx, next) => {
-    ctx.uid = '123'
+  const mdw: Middleware<MyContext> = (call, next) => {
+    call.uid = '123'
   }
   server.use(mdw)
 
@@ -26,12 +26,12 @@ describe('Context extension types', () => {
   const unaryHandler: ServiceImplementation<
     IGreetingService,
     MyContext
-  >['unary'] = ctx => ctx.uid
+  >['unary'] = call => call.uid
   server.addService(GreetingService, {
-    bidi: ctx => ctx.uid,
+    bidi: call => call.uid,
     unary: unaryHandler,
-    serverStream: ctx => ctx.uid,
-    clientStream: ctx => ctx.uid,
+    serverStream: call => call.uid,
+    clientStream: call => call.uid,
   })
   test('Type check', jest.fn())
 })

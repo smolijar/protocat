@@ -1,4 +1,4 @@
-import { Middleware } from './context'
+import { Middleware } from './call'
 
 export const composeMiddleware = (middleware: Middleware[]): Middleware => {
   return async (call, next) => {

@@ -19,11 +19,11 @@ describe('HelloService (boring, predictable and exhaustive)', () => {
     server = new Server()
   })
   test('use', () => {
-    server.use(async (ctx, next) => {
+    server.use(async (call, next) => {
       const start = performance.now()
       await next()
       const ms = performance.now() - start
-      ctx.initialMetadata.set('response-time', ms.toString())
+      call.initialMetadata.set('response-time', ms.toString())
     })
   })
   test('addService', () => {

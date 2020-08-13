@@ -1,6 +1,6 @@
 import * as grpc from '@grpc/grpc-js'
 import { ChannelOptions } from '@grpc/grpc-js/build/src/channel-options'
-import { ServiceImplementation, Middleware } from './context'
+import { ServiceImplementation, Middleware } from './call'
 import { stubToType } from './call-types'
 import { bindAsync, tryShutdown } from './grpc-helpers'
 import { composeMiddleware } from './middleware'
@@ -90,23 +90,23 @@ const wrapToHandler = (
   }
 
   return async (
-    call: any, // grpc.ServerReadableStream<any, any> | grpc.ServerUnaryCall<any, any> | grpc.ServerDuplexStream<any, any> | grpc.ServerWritableStream<any, any>
+    grpcCall: any, // grpc.ServerReadableStream<any, any> | grpc.ServerUnaryCall<any, any> | grpc.ServerDuplexStream<any, any> | grpc.ServerWritableStream<any, any>
     cb?: grpc.sendUnaryData<any> // Only for call grpc.ServerReadableStream<any, any> | grpc.ServerUnaryCall<any, any>, missing otherwise
   ) => {
-    const ctx = createContext(call)
+    const call = createContext(grpcCall)
     // @ts-ignore: Not part of public API, but only way to pair message to method
-    ctx.response = new methodDefinition.responseType()
+    call.response = new methodDefinition.responseType()
     try {
-      await methodHandler(ctx)
-      ctx.sendMetadata(ctx.initialMetadata)
+      await methodHandler(call)
+      call.sendMetadata(call.initialMetadata)
       if (cb) {
-        cb(null, ctx.response, ctx.trailingMetadata)
+        cb(null, call.response, call.trailingMetadata)
       }
     } catch (e) {
       if (cb) {
-        cb(e, null, ctx.trailingMetadata)
+        cb(e, null, call.trailingMetadata)
       } else {
-        call.emit('error', e)
+        grpcCall.emit('error', e)
       }
     }
   }

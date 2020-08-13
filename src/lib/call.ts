@@ -3,8 +3,8 @@ import { RemoveIdxSgn, TypedOnData } from './type-helpers'
 import { CallType } from './call-types'
 import { Message } from 'google-protobuf'
 
-/** ProtoCat context for incoming calls */
-export type ProtoCatContext<
+/** ProtoCat call */
+export type ProtoCatCall<
   Extension = {},
   Req = Message,
   Res = Message,
@@ -44,14 +44,14 @@ export type ProtoCatContext<
 
 export type NextFn = () => Promise<void>
 
-export type ProtoCatAnyContext<Extension = {}> =
-  | ProtoCatContext<Extension, Message, Message, CallType.UNARY>
-  | ProtoCatContext<Extension, Message, Message, CallType.SERVER_STREAM>
-  | ProtoCatContext<Extension, Message, Message, CallType.CLIENT_STREAM>
-  | ProtoCatContext<Extension, Message, Message, CallType.BIDI>
+export type ProtoCatAnyCall<Extension = {}> =
+  | ProtoCatCall<Extension, Message, Message, CallType.UNARY>
+  | ProtoCatCall<Extension, Message, Message, CallType.SERVER_STREAM>
+  | ProtoCatCall<Extension, Message, Message, CallType.CLIENT_STREAM>
+  | ProtoCatCall<Extension, Message, Message, CallType.BIDI>
 
 export type Middleware<Extension = {}> = (
-  ctx: ProtoCatAnyContext<Extension>,
+  call: ProtoCatAnyCall<Extension>,
   next: NextFn
 ) => any
 
@@ -71,7 +71,7 @@ type MethodDef2ServiceHandler<
   Extension = {}
 > = H extends grpc.MethodDefinition<infer Req, infer Res>
   ? (
-      call: ProtoCatContext<Extension, Req, Res, MethodDef2CallType<H>>,
+      call: ProtoCatCall<Extension, Req, Res, MethodDef2CallType<H>>,
       next: NextFn
     ) => any
   : never
