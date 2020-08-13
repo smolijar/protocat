@@ -73,18 +73,18 @@ const wrapToHandler = (
   methodDefinition: grpc.MethodDefinition<any, any>,
   methodHandler: any
 ) => {
-  const initialMetadata = new grpc.Metadata()
-  const trailingMetadata = new grpc.Metadata()
   const type = stubToType(methodDefinition)
-
-  const createContext = (call: any): any =>
-    Object.assign(call, {
+  const createContext = (call: any): any => {
+    const initialMetadata = new grpc.Metadata()
+    const trailingMetadata = new grpc.Metadata()
+    return Object.assign(call, {
       trailingMetadata,
       initialMetadata,
       path: methodDefinition.path,
       flushInitialMetadata: () => call.sendMetadata(initialMetadata),
       type,
     })
+  }
 
   return async (
     call: any, // grpc.ServerReadableStream<any, any> | grpc.ServerUnaryCall<any, any> | grpc.ServerDuplexStream<any, any> | grpc.ServerWritableStream<any, any>
