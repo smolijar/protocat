@@ -48,7 +48,7 @@ export type ServiceHandlerBidi<Req, Res> = (
   next: NextFn
 ) => any
 
-type AnyContext =
+export type AnyContext =
   | (ProtoCatContext<Message, Message, CallType.UNARY> &
       grpc.ServerUnaryCall<Message, Message>)
   | (ProtoCatContext<Message, Message, CallType.SERVER_STREAM> &
