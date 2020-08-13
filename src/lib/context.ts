@@ -4,7 +4,11 @@ import { CallType } from './call-types'
 import { Message } from 'google-protobuf'
 
 /** ProtoCat context enrichment for incoming calls */
-export type ProtoCatContext<Req, Res, Type extends CallType> = {
+export type ProtoCatContext<
+  Req = Message,
+  Res = Message,
+  Type extends CallType = CallType
+> = {
   /** Server initial metadata (sent automatically for unary / client stream) */
   initialMetadata: grpc.Metadata
   /** Manually send initial metadata for server stream / bidi */
@@ -19,59 +23,52 @@ export type ProtoCatContext<Req, Res, Type extends CallType> = {
   request?: Req
   /** Response message: only unary and client-stream */
   response?: Res
-} & (Type extends CallType.UNARY | CallType.CLIENT_STREAM
-  ? {
-      /** Ready response instance initialized for every call */
+} & (Type extends CallType.UNARY
+  ? grpc.ServerUnaryCall<Req, Res> & {
       response: Res
     }
-  : {})
+  : {}) &
+  (Type extends CallType.CLIENT_STREAM
+    ? TypedOnData<grpc.ServerReadableStream<Req, Res>, Req> & {
+        response: Res
+      }
+    : {}) &
+  (Type extends CallType.SERVER_STREAM
+    ? grpc.ServerWritableStream<Req, Res>
+    : {}) &
+  (Type extends CallType.BIDI
+    ? TypedOnData<grpc.ServerDuplexStream<Req, Res>, Req>
+    : {})
 
 export type NextFn = () => Promise<void>
-export type ServiceHandlerUnary<Req, Res> = (
-  call: ProtoCatContext<Req, Res, CallType.UNARY> &
-    grpc.ServerUnaryCall<Req, Res>,
-  next: NextFn
-) => any
-export type ServiceHandlerServerStream<Req, Res> = (
-  call: ProtoCatContext<Req, Res, CallType.SERVER_STREAM> &
-    grpc.ServerWritableStream<Req, Res>,
-  next: NextFn
-) => any
-export type ServiceHandlerClientStream<Req, Res> = (
-  call: ProtoCatContext<Req, Res, CallType.CLIENT_STREAM> &
-    TypedOnData<grpc.ServerReadableStream<Req, Res>, Req>,
-  next: NextFn
-) => any
-export type ServiceHandlerBidi<Req, Res> = (
-  call: ProtoCatContext<Req, Res, CallType.BIDI> &
-    TypedOnData<grpc.ServerDuplexStream<Req, Res>, Req>,
-  next: NextFn
-) => any
 
-export type AnyContext =
-  | (ProtoCatContext<Message, Message, CallType.UNARY> &
-      grpc.ServerUnaryCall<Message, Message>)
-  | (ProtoCatContext<Message, Message, CallType.SERVER_STREAM> &
-      grpc.ServerWritableStream<Message, Message>)
-  | (ProtoCatContext<Message, Message, CallType.CLIENT_STREAM> &
-      grpc.ServerReadableStream<Message, Message>)
-  | (ProtoCatContext<Message, Message, CallType.BIDI> &
-      grpc.ServerDuplexStream<Message, Message>)
+export type ProtoCatAnyContext =
+  | ProtoCatContext<Message, Message, CallType.UNARY>
+  | ProtoCatContext<Message, Message, CallType.SERVER_STREAM>
+  | ProtoCatContext<Message, Message, CallType.CLIENT_STREAM>
+  | ProtoCatContext<Message, Message, CallType.BIDI>
 
-export type Middleware = (ctx: AnyContext, next: NextFn) => any
+export type Middleware = (ctx: ProtoCatAnyContext, next: NextFn) => any
+
+type MethodDef2CallType<
+  M extends grpc.MethodDefinition<any, any>
+> = M['requestStream'] extends true
+  ? M['responseStream'] extends true
+    ? CallType.BIDI
+    : CallType.CLIENT_STREAM
+  : M['responseStream'] extends true
+  ? CallType.SERVER_STREAM
+  : CallType.UNARY
 
 /** Convert a single method definition to service handler type */
 type MethodDef2ServiceHandler<H> = H extends grpc.MethodDefinition<
-  infer Request,
+  infer Req,
   infer Res
 >
-  ? H['requestStream'] extends true
-    ? H['responseStream'] extends true
-      ? ServiceHandlerBidi<Request, Res>
-      : ServiceHandlerClientStream<Request, Res>
-    : H['responseStream'] extends true
-    ? ServiceHandlerServerStream<Request, Res>
-    : ServiceHandlerUnary<Request, Res>
+  ? (
+      call: ProtoCatContext<Req, Res, MethodDef2CallType<H>>,
+      next: NextFn
+    ) => any
   : never
 
 /** Create service handler type for whole client definition */

@@ -1,7 +1,7 @@
-import { Middleware, AnyContext } from '../context'
+import { Middleware, ProtoCatAnyContext } from '../context'
 import { CallType } from '../call-types'
 
-type ErrorHandler = (error: Error, context: AnyContext) => any
+type ErrorHandler = (error: Error, context: ProtoCatAnyContext) => any
 
 /**
  * Patches emit function to intercept errors with a handler to be able to consume or map dispatched errors on stream, before existing listeners are invoked.
