@@ -10,6 +10,7 @@ import {
   StatusObject,
 } from '@grpc/grpc-js'
 import { Hello } from '../../../dist/test/api/v1/hello_pb'
+import { performance } from 'perf_hooks'
 
 const ADDR = '0.0.0.0:3000'
 describe('HelloService (boring, predictable and exhaustive)', () => {
@@ -17,14 +18,26 @@ describe('HelloService (boring, predictable and exhaustive)', () => {
   test('createServer', () => {
     server = new Server()
   })
+  test('use', () => {
+    server.use(async (ctx, next) => {
+      const start = performance.now()
+      await next()
+      const ms = performance.now() - start
+      ctx.initialMetadata.set('response-time', ms.toString())
+    })
+  })
   test('addService', () => {
     server.addService(GreetingService, {
-      unary: call => {
-        call.initialMetadata.set('type', 'initialUnary')
-        call.initialMetadata.set('client', call.metadata.get('client')[0])
-        call.trailingMetadata.set('type', 'trailingUnary')
-        return call.response.setName(call.request?.getName() ?? '')
-      },
+      unary: [
+        call => {
+          call.initialMetadata.set('type', 'initialUnary')
+          call.initialMetadata.set('client', call.metadata.get('client')[0])
+          call.trailingMetadata.set('type', 'trailingUnary')
+        },
+        call => {
+          call.response.setName(call.request?.getName() ?? '')
+        },
+      ],
       serverStream: call => {
         call.initialMetadata.set('type', 'initialServerStream')
         call.initialMetadata.set('client', call.metadata.get('client')[0])
@@ -88,6 +101,9 @@ describe('HelloService (boring, predictable and exhaustive)', () => {
     test('Initial metadata', async () => {
       expect((await metaP).get('type')[0]).toEqual('initialUnary')
     })
+    test('Middleware ran', async () => {
+      expect(Number((await metaP).get('response-time')[0])).toBeGreaterThan(0)
+    })
     test('Client metadata', async () => {
       expect((await metaP).get('client')[0]).toEqual('unaryClientMeta')
     })
@@ -117,6 +133,9 @@ describe('HelloService (boring, predictable and exhaustive)', () => {
     })
     test('Initial metadata', async () => {
       expect((await metaP).get('type')[0]).toEqual('initialServerStream')
+    })
+    test('Middleware ran', async () => {
+      expect(Number((await metaP).get('response-time')[0])).toBeGreaterThan(0)
     })
     test('Client metadata', async () => {
       expect((await metaP).get('client')[0]).toEqual('serverStreamClientMeta')
@@ -149,6 +168,9 @@ describe('HelloService (boring, predictable and exhaustive)', () => {
     })
     test('Initial metadata', async () => {
       expect((await metaP).get('type')[0]).toEqual('initialClientStream')
+    })
+    test('Middleware ran', async () => {
+      expect(Number((await metaP).get('response-time')[0])).toBeGreaterThan(0)
     })
     test('Client metadata', async () => {
       expect((await metaP).get('client')[0]).toEqual('clientStreamClientMeta')
@@ -184,6 +206,9 @@ describe('HelloService (boring, predictable and exhaustive)', () => {
     })
     test('Initial metadata', async () => {
       expect((await metaP).get('type')[0]).toEqual('initialBidi')
+    })
+    test('Middleware ran', async () => {
+      expect(Number((await metaP).get('response-time')[0])).toBeGreaterThan(0)
     })
     test('Client metadata', async () => {
       expect((await metaP).get('client')[0]).toEqual('bidiClientMeta')
