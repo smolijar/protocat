@@ -5,7 +5,7 @@ import { stubToType } from './call-types'
 import { bindAsync, tryShutdown } from './grpc-helpers'
 import { composeMiddleware } from './middleware'
 
-export class Server {
+export class Server<Extension = {}> {
   /** Underlaying gRPC server */
   public server: grpc.Server
   /** Map of loaded generated method stubs */
@@ -13,7 +13,7 @@ export class Server {
   /** Map of loaded method service implementations */
   public serviceHandlers: Record<string, Middleware[]>
   /** Global middleware functions */
-  public middleware: Middleware[]
+  public middleware: Array<Middleware<Extension>>
   constructor(options?: ChannelOptions) {
     this.server = new grpc.Server(options)
     this.methodDefinitions = {}
@@ -21,13 +21,16 @@ export class Server {
     this.serviceHandlers = {}
   }
 
-  public use(...middleware: Middleware[]) {
+  public use(...middleware: Array<Middleware<Extension>>) {
     this.middleware.push(...middleware)
   }
 
   public addService<
     T extends grpc.ServiceDefinition<grpc.UntypedServiceImplementation>
-  >(serviceDefinition: T, serviceImplementation: ServiceImplementation<T>) {
+  >(
+    serviceDefinition: T,
+    serviceImplementation: ServiceImplementation<T, Extension>
+  ) {
     for (const methodName in serviceDefinition) {
       // Path is FQN with namespace to avoid collisions
       const key = serviceDefinition[methodName].path

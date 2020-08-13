@@ -202,7 +202,7 @@ server.use(
 - [ ] starter project
 - [ ] gRPC client
 - [ ] Call pool
-- [ ] Context type extension
+- [x] Context type extension
 - [ ] Partial definition
 - [ ] Serialization level caching
 - [ ] Docs

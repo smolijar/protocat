@@ -3,8 +3,9 @@ import { RemoveIdxSgn, TypedOnData } from './type-helpers'
 import { CallType } from './call-types'
 import { Message } from 'google-protobuf'
 
-/** ProtoCat context enrichment for incoming calls */
+/** ProtoCat context for incoming calls */
 export type ProtoCatContext<
+  Extension = {},
   Req = Message,
   Res = Message,
   Type extends CallType = CallType
@@ -23,11 +24,12 @@ export type ProtoCatContext<
   request?: Req
   /** Response message: only unary and client-stream */
   response?: Res
-} & (Type extends CallType.UNARY
-  ? grpc.ServerUnaryCall<Req, Res> & {
-      response: Res
-    }
-  : {}) &
+} & Extension &
+  (Type extends CallType.UNARY
+    ? grpc.ServerUnaryCall<Req, Res> & {
+        response: Res
+      }
+    : {}) &
   (Type extends CallType.CLIENT_STREAM
     ? TypedOnData<grpc.ServerReadableStream<Req, Res>, Req> & {
         response: Res
@@ -42,13 +44,16 @@ export type ProtoCatContext<
 
 export type NextFn = () => Promise<void>
 
-export type ProtoCatAnyContext =
-  | ProtoCatContext<Message, Message, CallType.UNARY>
-  | ProtoCatContext<Message, Message, CallType.SERVER_STREAM>
-  | ProtoCatContext<Message, Message, CallType.CLIENT_STREAM>
-  | ProtoCatContext<Message, Message, CallType.BIDI>
+export type ProtoCatAnyContext<Extension = {}> =
+  | ProtoCatContext<Extension, Message, Message, CallType.UNARY>
+  | ProtoCatContext<Extension, Message, Message, CallType.SERVER_STREAM>
+  | ProtoCatContext<Extension, Message, Message, CallType.CLIENT_STREAM>
+  | ProtoCatContext<Extension, Message, Message, CallType.BIDI>
 
-export type Middleware = (ctx: ProtoCatAnyContext, next: NextFn) => any
+export type Middleware<Extension = {}> = (
+  ctx: ProtoCatAnyContext<Extension>,
+  next: NextFn
+) => any
 
 type MethodDef2CallType<
   M extends grpc.MethodDefinition<any, any>
@@ -61,21 +66,21 @@ type MethodDef2CallType<
   : CallType.UNARY
 
 /** Convert a single method definition to service handler type */
-type MethodDef2ServiceHandler<H> = H extends grpc.MethodDefinition<
-  infer Req,
-  infer Res
->
+type MethodDef2ServiceHandler<
+  H,
+  Extension = {}
+> = H extends grpc.MethodDefinition<infer Req, infer Res>
   ? (
-      call: ProtoCatContext<Req, Res, MethodDef2CallType<H>>,
+      call: ProtoCatContext<Extension, Req, Res, MethodDef2CallType<H>>,
       next: NextFn
     ) => any
   : never
 
 /** Create service handler type for whole client definition */
-export type ServiceImplementation<T> = RemoveIdxSgn<
+export type ServiceImplementation<T, Extension = {}> = RemoveIdxSgn<
   {
     [M in keyof T]:
-      | MethodDef2ServiceHandler<T[M]>
-      | Array<MethodDef2ServiceHandler<T[M]>>
+      | MethodDef2ServiceHandler<T[M], Extension>
+      | Array<MethodDef2ServiceHandler<T[M], Extension>>
   }
 >
