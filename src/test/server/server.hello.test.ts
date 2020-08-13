@@ -31,7 +31,7 @@ describe('HelloService (boring, predictable and exhaustive)', () => {
       unary: [
         call => {
           call.initialMetadata.set('type', 'initialUnary')
-          call.initialMetadata.set('client', call.metadata.get('client')[0])
+          call.initialMetadata.set('client', call.metadata.getMap().client)
           call.trailingMetadata.set('type', 'trailingUnary')
         },
         call => {
@@ -40,7 +40,7 @@ describe('HelloService (boring, predictable and exhaustive)', () => {
       ],
       serverStream: call => {
         call.initialMetadata.set('type', 'initialServerStream')
-        call.initialMetadata.set('client', call.metadata.get('client')[0])
+        call.initialMetadata.set('client', call.metadata.getMap().client)
         call.trailingMetadata.set('type', 'trailingServerStream')
         call.flushInitialMetadata()
         for (let i = 0; i < 5; i++) {
@@ -50,7 +50,7 @@ describe('HelloService (boring, predictable and exhaustive)', () => {
       },
       clientStream: async call => {
         call.initialMetadata.set('type', 'initialClientStream')
-        call.initialMetadata.set('client', call.metadata.get('client')[0])
+        call.initialMetadata.set('client', call.metadata.getMap().client)
         call.trailingMetadata.set('type', 'trailingClientStream')
         let acc = ''
         call.on('data', req => {
@@ -65,7 +65,7 @@ describe('HelloService (boring, predictable and exhaustive)', () => {
       },
       bidi: call => {
         call.initialMetadata.set('type', 'initialBidi')
-        call.initialMetadata.set('client', call.metadata.get('client')[0])
+        call.initialMetadata.set('client', call.metadata.getMap().client)
         call.trailingMetadata.set('type', 'trailingBidi')
         call.flushInitialMetadata()
         call.on('data', req => {
@@ -80,10 +80,13 @@ describe('HelloService (boring, predictable and exhaustive)', () => {
   test('start', async () => {
     await server.start(ADDR, ServerCredentials.createInsecure())
   })
+  const responseTimeSet = (m: Metadata) =>
+    expect(Number(m.getMap()['response-time'])).toBeGreaterThan(0)
+
   describe('Unary', () => {
     const client = new GreetingClient(ADDR, ChannelCredentials.createInsecure())
-    let metaP: Promise<Metadata> = null as any
-    let metaS: Promise<StatusObject> = null as any
+    let metadata: Promise<Metadata> = null as any
+    let status: Promise<StatusObject> = null as any
     const clientMeta = new Metadata()
     clientMeta.set('client', 'unaryClientMeta')
     test('Reqest & response', async () => {
@@ -93,36 +96,36 @@ describe('HelloService (boring, predictable and exhaustive)', () => {
           clientMeta,
           (err, res) => (err ? reject(err) : resolve(res))
         )
-        metaP = new Promise(resolve => call.on('metadata', resolve))
-        metaS = new Promise(resolve => call.on('status', resolve))
+        metadata = new Promise(resolve => call.on('metadata', resolve))
+        status = new Promise(resolve => call.on('status', resolve))
       })
       expect(hello.getName()).toBe('X')
     })
     test('Initial metadata', async () => {
-      expect((await metaP).get('type')[0]).toEqual('initialUnary')
+      expect((await metadata).getMap().type).toEqual('initialUnary')
     })
     test('Middleware ran', async () => {
-      expect(Number((await metaP).get('response-time')[0])).toBeGreaterThan(0)
+      responseTimeSet(await metadata)
     })
     test('Client metadata', async () => {
-      expect((await metaP).get('client')[0]).toEqual('unaryClientMeta')
+      expect((await metadata).getMap().client).toEqual('unaryClientMeta')
     })
     test('Trailing metadata', async () => {
-      expect((await metaS).metadata.get('type')[0]).toEqual('trailingUnary')
+      expect((await status).metadata.getMap().type).toEqual('trailingUnary')
     })
   })
   describe('ServerStream', () => {
     const client = new GreetingClient(ADDR, ChannelCredentials.createInsecure())
-    let metaP: Promise<Metadata> = null as any
-    let metaS: Promise<StatusObject> = null as any
+    let metadata: Promise<Metadata> = null as any
+    let status: Promise<StatusObject> = null as any
     const clientMeta = new Metadata()
     clientMeta.set('client', 'serverStreamClientMeta')
     test('Response stream', async () => {
       let acc = ''
       await new Promise<Hello>((resolve, reject) => {
         const call = client.serverStream(new Hello(), clientMeta)
-        metaP = new Promise(resolve => call.on('metadata', resolve))
-        metaS = new Promise(resolve => call.on('status', resolve))
+        metadata = new Promise(resolve => call.on('metadata', resolve))
+        status = new Promise(resolve => call.on('status', resolve))
         call.on('data', (hello: Hello) => {
           acc = `${acc}${hello.getName()}`
         })
@@ -132,24 +135,24 @@ describe('HelloService (boring, predictable and exhaustive)', () => {
       expect(acc).toMatchInlineSnapshot('"WorldWorldWorldWorldWorld"')
     })
     test('Initial metadata', async () => {
-      expect((await metaP).get('type')[0]).toEqual('initialServerStream')
+      expect((await metadata).getMap().type).toEqual('initialServerStream')
     })
     test('Middleware ran', async () => {
-      expect(Number((await metaP).get('response-time')[0])).toBeGreaterThan(0)
+      responseTimeSet(await metadata)
     })
     test('Client metadata', async () => {
-      expect((await metaP).get('client')[0]).toEqual('serverStreamClientMeta')
+      expect((await metadata).getMap().client).toEqual('serverStreamClientMeta')
     })
     test('Trailing metadata', async () => {
-      expect((await metaS).metadata.get('type')[0]).toEqual(
+      expect((await status).metadata.getMap().type).toEqual(
         'trailingServerStream'
       )
     })
   })
   describe('ClientStream', () => {
     const client = new GreetingClient(ADDR, ChannelCredentials.createInsecure())
-    let metaP: Promise<Metadata> = null as any
-    let metaS: Promise<StatusObject> = null as any
+    let metadata: Promise<Metadata> = null as any
+    let status: Promise<StatusObject> = null as any
     const clientMeta = new Metadata()
     clientMeta.set('client', 'clientStreamClientMeta')
     test('Client stream', async () => {
@@ -157,8 +160,8 @@ describe('HelloService (boring, predictable and exhaustive)', () => {
         const call = client.clientStream(clientMeta, (err, res) =>
           err ? reject(err) : resolve(res)
         )
-        metaP = new Promise(resolve => call.on('metadata', resolve))
-        metaS = new Promise(resolve => call.on('status', resolve))
+        metadata = new Promise(resolve => call.on('metadata', resolve))
+        status = new Promise(resolve => call.on('status', resolve))
         for (let i = 0; i < 10; ++i) {
           call.write(new Hello().setName(String(i)))
         }
@@ -167,24 +170,24 @@ describe('HelloService (boring, predictable and exhaustive)', () => {
       expect(res.getName()).toMatchInlineSnapshot('"0123456789"')
     })
     test('Initial metadata', async () => {
-      expect((await metaP).get('type')[0]).toEqual('initialClientStream')
+      expect((await metadata).getMap().type).toEqual('initialClientStream')
     })
     test('Middleware ran', async () => {
-      expect(Number((await metaP).get('response-time')[0])).toBeGreaterThan(0)
+      responseTimeSet(await metadata)
     })
     test('Client metadata', async () => {
-      expect((await metaP).get('client')[0]).toEqual('clientStreamClientMeta')
+      expect((await metadata).getMap().client).toEqual('clientStreamClientMeta')
     })
     test('Trailing metadata', async () => {
-      expect((await metaS).metadata.get('type')[0]).toEqual(
+      expect((await status).metadata.getMap().type).toEqual(
         'trailingClientStream'
       )
     })
   })
   describe('Bidi', () => {
     const client = new GreetingClient(ADDR, ChannelCredentials.createInsecure())
-    let metaP: Promise<Metadata> = null as any
-    let metaS: Promise<StatusObject> = null as any
+    let metadata: Promise<Metadata> = null as any
+    let status: Promise<StatusObject> = null as any
     const clientMeta = new Metadata()
     clientMeta.set('client', 'bidiClientMeta')
     test('Bidi stream', async () => {
@@ -192,8 +195,8 @@ describe('HelloService (boring, predictable and exhaustive)', () => {
         const call = client.bidi(clientMeta)
         let cnt = 0
         call.write(new Hello().setName('foo'))
-        metaP = new Promise(resolve => call.on('metadata', resolve))
-        metaS = new Promise(resolve => call.on('status', resolve))
+        metadata = new Promise(resolve => call.on('metadata', resolve))
+        status = new Promise(resolve => call.on('status', resolve))
         call.on('end', resolve)
         call.on('data', res => {
           if (cnt++ < 3) {
@@ -205,16 +208,16 @@ describe('HelloService (boring, predictable and exhaustive)', () => {
       })
     })
     test('Initial metadata', async () => {
-      expect((await metaP).get('type')[0]).toEqual('initialBidi')
+      expect((await metadata).getMap().type).toEqual('initialBidi')
     })
     test('Middleware ran', async () => {
-      expect(Number((await metaP).get('response-time')[0])).toBeGreaterThan(0)
+      responseTimeSet(await metadata)
     })
     test('Client metadata', async () => {
-      expect((await metaP).get('client')[0]).toEqual('bidiClientMeta')
+      expect((await metadata).getMap().client).toEqual('bidiClientMeta')
     })
     test('Trailing metadata', async () => {
-      expect((await metaS).metadata.get('type')[0]).toEqual('trailingBidi')
+      expect((await status).metadata.getMap().type).toEqual('trailingBidi')
     })
   })
   test('stop', async () => {

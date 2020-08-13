@@ -193,11 +193,11 @@ server.use(
 
 - [x] Middleware
 - [x] Error handling
-- [ ] Type safety
+- [x] Type safety
 
 - [x] call / context terminology
 - [x] call / stream terminology
-- [ ] metaS / metaP test naming confusion
+- [x] status / metadata test naming confusion
 - [ ] metadata readme section
 - [ ] starter project
 - [ ] gRPC client

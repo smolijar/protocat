@@ -85,30 +85,30 @@ describe('Error handling', () => {
       expect(lastError.message).toMatch(/unary-error/)
     })
     describe('Pass through rejects at client with correct status', () => {
-      let metaS: Promise<StatusObject> = null as any
-      let metaP: Promise<Metadata> = null as any
+      let status: Promise<StatusObject> = null as any
+      let metadata: Promise<Metadata> = null as any
       test('Throws', async () => {
         await expect(
           new Promise<Hello>((resolve, reject) => {
             const call = client.unary(new Hello(), (err, res) =>
               err ? reject(err) : resolve(res)
             )
-            metaS = new Promise(resolve => call.on('status', resolve))
-            metaP = new Promise(resolve => call.on('metadata', resolve))
+            status = new Promise(resolve => call.on('status', resolve))
+            metadata = new Promise(resolve => call.on('metadata', resolve))
           })
         ).rejects.toThrow(/unary-error/)
       })
       test('Error data', async () => {
-        expect((await metaS).code).toBe(2)
-        expect((await metaS).details).toBe('unary-error')
+        expect((await status).code).toBe(2)
+        expect((await status).details).toBe('unary-error')
       })
       test('Trailing (status) metadata', async () => {
-        expect((await metaS).metadata.getMap().trailing).toBe('unary-trailing')
-        expect((await metaS).metadata.getMap().onerror).toBe('unary-onerror')
+        expect((await status).metadata.getMap().trailing).toBe('unary-trailing')
+        expect((await status).metadata.getMap().onerror).toBe('unary-onerror')
       })
       test('Initial metadata', async () => {
-        expect((await metaP).getMap().initial).toEqual('unary')
-        expect((await metaP).getMap().onerror).toEqual('unary-onerror')
+        expect((await metadata).getMap().initial).toEqual('unary')
+        expect((await metadata).getMap().onerror).toEqual('unary-onerror')
       })
     })
   })
@@ -136,14 +136,14 @@ describe('Error handling', () => {
         const clientMeta = new Metadata()
         clientMeta.set('type', type)
         let status: StatusObject = null as any
-        let metaP: Promise<Metadata> = null as any
+        let metadata: Promise<Metadata> = null as any
 
         test('Throws', async () => {
           await expect(
             new Promise<Hello>((resolve, reject) => {
               const call = client.serverStream(new Hello(), clientMeta)
               call.on('end', () => resolve())
-              metaP = new Promise(resolve => call.on('metadata', resolve))
+              metadata = new Promise(resolve => call.on('metadata', resolve))
 
               // Does not emit `status`: status object is in error on failure
               call.on('error', e => {
@@ -164,8 +164,10 @@ describe('Error handling', () => {
           expect(status.metadata.getMap().onerror).toBe('serverStream-onerror')
         })
         test('Initial metadata', async () => {
-          expect((await metaP).getMap().initial).toEqual('serverStream')
-          expect((await metaP).getMap().onerror).toEqual('serverStream-onerror')
+          expect((await metadata).getMap().initial).toEqual('serverStream')
+          expect((await metadata).getMap().onerror).toEqual(
+            'serverStream-onerror'
+          )
         })
       })
     })
@@ -192,7 +194,7 @@ describe('Error handling', () => {
       describe('Pass through rejects at client with correct status', () => {
         const clientMeta = new Metadata()
         clientMeta.set('type', type)
-        let metaP: Promise<Metadata> = null as any
+        let metadata: Promise<Metadata> = null as any
         let status: StatusObject = null as any
         test('Throws', async () => {
           await expect(
@@ -204,7 +206,7 @@ describe('Error handling', () => {
                 }
                 resolve(res)
               })
-              metaP = new Promise(resolve => call.on('metadata', resolve))
+              metadata = new Promise(resolve => call.on('metadata', resolve))
             })
           ).rejects.toThrow(`clientStream-${type}-error`)
         })
@@ -219,8 +221,10 @@ describe('Error handling', () => {
           expect(status.metadata.getMap().onerror).toBe('clientStream-onerror')
         })
         test('Initial metadata', async () => {
-          expect((await metaP).getMap().initial).toEqual('clientStream')
-          expect((await metaP).getMap().onerror).toEqual('clientStream-onerror')
+          expect((await metadata).getMap().initial).toEqual('clientStream')
+          expect((await metadata).getMap().onerror).toEqual(
+            'clientStream-onerror'
+          )
         })
       })
     })
@@ -247,13 +251,13 @@ describe('Error handling', () => {
         const clientMeta = new Metadata()
         clientMeta.set('type', type)
         let status: StatusObject = null as any
-        let metaP: Promise<Metadata> = null as any
+        let metadata: Promise<Metadata> = null as any
         test('Throws', async () => {
           await expect(
             new Promise<Hello>((resolve, reject) => {
               const call = client.bidi(clientMeta)
               call.on('end', () => resolve())
-              metaP = new Promise(resolve => call.on('metadata', resolve))
+              metadata = new Promise(resolve => call.on('metadata', resolve))
               // Does not emit `status`: status object is in error on failure
               call.on('error', e => {
                 status = e as any
@@ -271,8 +275,8 @@ describe('Error handling', () => {
           expect(status.metadata.getMap().onerror).toBe('bidi-onerror')
         })
         test('Initial metadata', async () => {
-          expect((await metaP).getMap().initial).toEqual('bidi')
-          expect((await metaP).getMap().onerror).toEqual('bidi-onerror')
+          expect((await metadata).getMap().initial).toEqual('bidi')
+          expect((await metadata).getMap().onerror).toEqual('bidi-onerror')
         })
       })
     })
