@@ -31,8 +31,7 @@ describe('CatService (real world example)', () => {
         let travelled = 0
         let lastLat: number | null = null
         let lastLng: number | null = null
-        // TODO: This would be cool if inferred
-        call.on('data', (req: ShareLocationRequest) => {
+        call.on('data', req => {
           travelled +=
             lastLat && lastLng
               ? Math.sqrt(
@@ -56,7 +55,7 @@ describe('CatService (real world example)', () => {
         call.initialMetadata.set('type', 'initialBidi')
         call.trailingMetadata.set('type', 'trailingBidi')
         call.flushInitialMetadata()
-        call.on('data', (req: FeedCatsRequest) => {
+        call.on('data', req => {
           call.write(new Cat().setName('Foo'))
         })
         call.on('end', () => {

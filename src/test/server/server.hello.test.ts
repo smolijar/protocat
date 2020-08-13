@@ -53,7 +53,7 @@ describe('HelloService (boring, predictable and exhaustive)', () => {
         call.initialMetadata.set('client', call.metadata.get('client')[0])
         call.trailingMetadata.set('type', 'trailingClientStream')
         let acc = ''
-        call.on('data', (req: Hello) => {
+        call.on('data', req => {
           acc += req.getName()
         })
         await new Promise(resolve =>
@@ -68,7 +68,7 @@ describe('HelloService (boring, predictable and exhaustive)', () => {
         call.initialMetadata.set('client', call.metadata.get('client')[0])
         call.trailingMetadata.set('type', 'trailingBidi')
         call.flushInitialMetadata()
-        call.on('data', (req: Hello) => {
+        call.on('data', req => {
           call.write(new Hello().setName(req.getName().toUpperCase()))
         })
         call.on('end', () => {

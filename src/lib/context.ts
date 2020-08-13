@@ -1,5 +1,5 @@
 import * as grpc from '@grpc/grpc-js'
-import { RemoveIdxSgn } from './type-helpers'
+import { RemoveIdxSgn, TypedOnData } from './type-helpers'
 import { CallType } from './call-types'
 import { Message } from 'google-protobuf'
 
@@ -39,12 +39,12 @@ export type ServiceHandlerServerStream<Req, Res> = (
 ) => any
 export type ServiceHandlerClientStream<Req, Res> = (
   call: ProtoCatContext<Req, Res, CallType.CLIENT_STREAM> &
-    grpc.ServerReadableStream<Req, Res>,
+    TypedOnData<grpc.ServerReadableStream<Req, Res>, Req>,
   next: NextFn
 ) => any
 export type ServiceHandlerBidi<Req, Res> = (
   call: ProtoCatContext<Req, Res, CallType.BIDI> &
-    grpc.ServerDuplexStream<Req, Res>,
+    TypedOnData<grpc.ServerDuplexStream<Req, Res>, Req>,
   next: NextFn
 ) => any
 
