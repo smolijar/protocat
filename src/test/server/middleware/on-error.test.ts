@@ -1,15 +1,15 @@
-import { ProtoCat, onError, CallType } from '..'
+import { ProtoCat, onError, CallType } from '../../..'
 import {
   GreetingService,
   GreetingClient,
-} from '../../dist/test/api/v1/hello_grpc_pb'
+} from '../../../../dist/test/api/v1/hello_grpc_pb'
 import {
   ServerCredentials,
   ChannelCredentials,
   Metadata,
   StatusObject,
 } from '@grpc/grpc-js'
-import { Hello } from '../../dist/test/api/v1/hello_pb'
+import { Hello } from '../../../../dist/test/api/v1/hello_pb'
 
 const ADDR = '0.0.0.0:3000'
 describe('Error handling', () => {
@@ -50,8 +50,8 @@ describe('Error handling', () => {
         if (call.metadata.getMap().catch) {
           lastError = e
           if (
-            call.type === CallType.SERVER_STREAM ||
-            call.type === CallType.BIDI
+            call.type === CallType.ServerStream ||
+            call.type === CallType.Bidi
           ) {
             // sync error not re-thrown on stream response, should end
             call.end()

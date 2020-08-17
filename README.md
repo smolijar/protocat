@@ -166,7 +166,7 @@ app.use(
 
     // Consume the error
     if (notThatBad(e)) {
-      if (call.type === CallType.SERVER_STREAM || call.type === CallType.BIDI) {
+      if (call.type === CallType.ServerStream || call.type === CallType.Bidi) {
         // sync error not re-thrown on stream response, should end
         call.end()
       }

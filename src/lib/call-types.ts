@@ -1,9 +1,9 @@
 /** Call types aligned with grpc core library */
 export enum CallType {
-  BIDI = 'bidi',
-  SERVER_STREAM = 'serverStream',
-  CLIENT_STREAM = 'clientStream',
-  UNARY = 'unary',
+  Bidi = 'bidi',
+  ServerStream = 'serverStream',
+  ClientStream = 'clientStream',
+  Unary = 'unary',
 }
 
 /** Assign call type from generated definition */
@@ -12,8 +12,8 @@ export const stubToType = (
 ) =>
   s.responseStream
     ? s.requestStream
-      ? CallType.BIDI
-      : CallType.SERVER_STREAM
+      ? CallType.Bidi
+      : CallType.ServerStream
     : s.requestStream
-    ? CallType.CLIENT_STREAM
-    : CallType.UNARY
+    ? CallType.ClientStream
+    : CallType.Unary

@@ -39,9 +39,9 @@ export const onError = (handler: ErrorHandler): Middleware => async (
   next
 ) => {
   if (
-    call.type === CallType.SERVER_STREAM ||
-    call.type === CallType.BIDI ||
-    call.type === CallType.CLIENT_STREAM
+    call.type === CallType.ServerStream ||
+    call.type === CallType.Bidi ||
+    call.type === CallType.ClientStream
   ) {
     mapError(call, handler)
   }

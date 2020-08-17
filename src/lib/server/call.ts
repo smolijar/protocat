@@ -25,30 +25,30 @@ export type ProtoCatCall<
   /** Response message: only unary and client-stream */
   response?: Res
 } & Extension &
-  (Type extends CallType.UNARY
+  (Type extends CallType.Unary
     ? grpc.ServerUnaryCall<Req, Res> & {
         response: Res
       }
     : {}) &
-  (Type extends CallType.CLIENT_STREAM
+  (Type extends CallType.ClientStream
     ? TypedOnData<grpc.ServerReadableStream<Req, Res>, Req> & {
         response: Res
       }
     : {}) &
-  (Type extends CallType.SERVER_STREAM
+  (Type extends CallType.ServerStream
     ? grpc.ServerWritableStream<Req, Res>
     : {}) &
-  (Type extends CallType.BIDI
+  (Type extends CallType.Bidi
     ? TypedOnData<grpc.ServerDuplexStream<Req, Res>, Req>
     : {})
 
 export type NextFn = () => Promise<void>
 
 export type ProtoCatAnyCall<Extension = {}> =
-  | ProtoCatCall<Extension, Message, Message, CallType.UNARY>
-  | ProtoCatCall<Extension, Message, Message, CallType.SERVER_STREAM>
-  | ProtoCatCall<Extension, Message, Message, CallType.CLIENT_STREAM>
-  | ProtoCatCall<Extension, Message, Message, CallType.BIDI>
+  | ProtoCatCall<Extension, Message, Message, CallType.Unary>
+  | ProtoCatCall<Extension, Message, Message, CallType.ServerStream>
+  | ProtoCatCall<Extension, Message, Message, CallType.ClientStream>
+  | ProtoCatCall<Extension, Message, Message, CallType.Bidi>
 
 export type Middleware<Extension = {}> = (
   call: ProtoCatAnyCall<Extension>,
@@ -59,11 +59,11 @@ type MethodDef2CallType<
   M extends grpc.MethodDefinition<any, any>
 > = M['requestStream'] extends true
   ? M['responseStream'] extends true
-    ? CallType.BIDI
-    : CallType.CLIENT_STREAM
+    ? CallType.Bidi
+    : CallType.ClientStream
   : M['responseStream'] extends true
-  ? CallType.SERVER_STREAM
-  : CallType.UNARY
+  ? CallType.ServerStream
+  : CallType.Unary
 
 /** Convert a single method definition to service handler type */
 type MethodDef2ServiceHandler<
