@@ -1,18 +1,17 @@
-import { Server, Middleware } from '..'
+import { ProtoCat, Middleware, ServiceImplementation } from '..'
 import {
   GreetingService,
   IGreetingService,
 } from '../../dist/test/api/v1/hello_grpc_pb'
-import { ServiceImplementation } from '../lib/call'
 
 describe('Context extension types', () => {
   interface MyContext {
     uid: string
   }
-  const server = new Server<MyContext>()
+  const app = new ProtoCat<MyContext>()
 
   // Inferred middleware context
-  server.use((call, next) => {
+  app.use((call, next) => {
     call.uid = '123'
   })
 
@@ -20,14 +19,14 @@ describe('Context extension types', () => {
   const mdw: Middleware<MyContext> = (call, next) => {
     call.uid = '123'
   }
-  server.use(mdw)
+  app.use(mdw)
 
   // Service definition inferred and explicit
   const unaryHandler: ServiceImplementation<
     IGreetingService,
     MyContext
   >['unary'] = call => call.uid
-  server.addService(GreetingService, {
+  app.addService(GreetingService, {
     bidi: call => call.uid,
     unary: unaryHandler,
     serverStream: call => call.uid,

@@ -1,5 +1,5 @@
-import { composeMiddleware } from '../lib/middleware'
-import { Middleware } from '../lib/call'
+import { composeMiddleware } from '../lib/server/middleware/compose-middleware'
+import { Middleware } from '..'
 
 describe('Middleware', () => {
   describe('Compose', () => {

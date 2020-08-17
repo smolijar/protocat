@@ -11,11 +11,11 @@ Modern, minimalist type-safe gRPC framework for Node.js
 ## Quickstart
 
 ```typescript
-import { Server } from 'protocat'
+import { ProtoCat } from 'protocat'
 import { CatService } from '../dist/cat_grpc_pb' // Generated service definition
 
-server = new Server()
-server.addService(CatService, {
+app = new ProtoCat()
+app.addService(CatService, {
     getCat: async call => {
         const cat = await getCatByName(call.request?.getName() ?? '')
         call.response.setName(cat.name)
@@ -25,7 +25,7 @@ server.addService(CatService, {
     }
 }
 
-server.start('0.0.0.0:3000', ServerCredentials.createInsecure())
+app.start('0.0.0.0:3000', ServerCredentials.createInsecure())
 ```
 
 ## Features
@@ -40,14 +40,14 @@ Protocat uses pure JavaScript gRPC client implementation `@grpc/grpc-js`
 
 Middlewares can be registered
 
-1. either globally, with `server.use` for all incoming requests,
+1. either globally, with `app.use` for all incoming requests,
 2. or at method level with `addService`, where instead of a single handler, an array of handlers can be provided (handler and middleware have the same API).
 
 ```typescript
-server.use(call => {
+app.use(call => {
   /*...*/
 })
-server.addService(CatService, {
+app.addService(CatService, {
   getCat: [
     call => {
       /*...*/
@@ -66,7 +66,7 @@ Note that grpc does not provide API to intercept all incoming requests, only to 
 Here is an example of a simple logger middleware. Apart from `call` each middleware (handler alike) has a `next` function. This is callstack of all subsequent middlewares and handlers. This feature is demonstrated in a simple logger middleware bellow.
 
 ```typescript
-server.use(async (call, next) => {
+app.use(async (call, next) => {
   const start = performance.now()
   console.log(` --> ${call.path}`, {
     request: call.request?.toObject(),
@@ -87,17 +87,17 @@ server.use(async (call, next) => {
 All middlewares are executed in order they were registered, followed by an execution of handlers is provided order, regardless of middleware-service order. Not that in the following example, `C` middleware is registered after `CatService` and it is still called, even before the handlers.
 
 ```typescript
-server.use(async (call, next) => {
+app.use(async (call, next) => {
   console.log('A1')
   await next()
   console.log('A2')
 })
-server.use(async (call, next) => {
+app.use(async (call, next) => {
   console.log('B1')
   await next()
   console.log('B2')
 })
-server.addService(CatService, {
+app.addService(CatService, {
   getCat: [
     async (call, next) => {
       console.log('D1')
@@ -111,7 +111,7 @@ server.addService(CatService, {
     },
   ],
 })
-server.use(async (call, next) => {
+app.use(async (call, next) => {
   console.log('C1')
   await next()
   console.log('C2')
@@ -137,7 +137,7 @@ server.use(async (call, next) => {
 Error handling can be solved with a custom simple middleware, thanks to existing `next` cascading mechanism:
 
 ```typescript
-server.use(async (call, next) => {
+app.use(async (call, next) => {
   try {
     await next()
   } catch (error) {
@@ -158,7 +158,7 @@ There is an `onError` middleware creator, that can intercept all errors includin
 ```typescript
 import { onError } from 'protocat'
 
-server.use(
+app.use(
   onError((e, call) => {
     // Set metadata
     call.initialMetadata.set('error-code', e.code)

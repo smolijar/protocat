@@ -1,6 +1,6 @@
 import * as grpc from '@grpc/grpc-js'
-import { RemoveIdxSgn, TypedOnData } from './type-helpers'
-import { CallType } from './call-types'
+import { RemoveIdxSgn, TypedOnData } from '../misc/type-helpers'
+import { CallType } from '../call-types'
 import { Message } from 'google-protobuf'
 
 /** ProtoCat call */

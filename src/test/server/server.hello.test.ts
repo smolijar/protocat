@@ -1,4 +1,4 @@
-import { Server } from '../..'
+import { ProtoCat } from '../..'
 import {
   GreetingService,
   GreetingClient,
@@ -14,12 +14,12 @@ import { performance } from 'perf_hooks'
 
 const ADDR = '0.0.0.0:3000'
 describe('HelloService (boring, predictable and exhaustive)', () => {
-  let server: Server
+  let app: ProtoCat
   test('createServer', () => {
-    server = new Server()
+    app = new ProtoCat()
   })
   test('use', () => {
-    server.use(async (call, next) => {
+    app.use(async (call, next) => {
       const start = performance.now()
       await next()
       const ms = performance.now() - start
@@ -27,7 +27,7 @@ describe('HelloService (boring, predictable and exhaustive)', () => {
     })
   })
   test('addService', () => {
-    server.addService(GreetingService, {
+    app.addService(GreetingService, {
       unary: [
         call => {
           call.initialMetadata.set('type', 'initialUnary')
@@ -78,7 +78,7 @@ describe('HelloService (boring, predictable and exhaustive)', () => {
     })
   })
   test('start', async () => {
-    await server.start(ADDR, ServerCredentials.createInsecure())
+    await app.start(ADDR, ServerCredentials.createInsecure())
   })
   const responseTimeSet = (m: Metadata) =>
     expect(Number(m.getMap()['response-time'])).toBeGreaterThan(0)
@@ -221,6 +221,6 @@ describe('HelloService (boring, predictable and exhaustive)', () => {
     })
   })
   test('stop', async () => {
-    await server.stop()
+    await app.stop()
   })
 })

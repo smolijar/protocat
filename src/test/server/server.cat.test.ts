@@ -1,4 +1,4 @@
-import { Server } from '../..'
+import { ProtoCat } from '../..'
 import { CatService, CatClient } from '../../../dist/test/api/v1/cat_grpc_pb'
 import { Cat } from '../../../dist/test/api/type/cat_pb'
 import { ServerCredentials, ChannelCredentials } from '@grpc/grpc-js'
@@ -12,10 +12,10 @@ import {
 
 const ADDR = '0.0.0.0:3000'
 describe('CatService (real world example)', () => {
-  let server: Server
+  let app: ProtoCat
   test('Setup and run server', async () => {
-    server = new Server()
-    server.addService(CatService, {
+    app = new ProtoCat()
+    app.addService(CatService, {
       getCat: call => call.response.setName(call.request?.getName() ?? ''),
       watchCats: async call => {
         call.flushInitialMetadata()
@@ -63,7 +63,7 @@ describe('CatService (real world example)', () => {
         })
       },
     })
-    await server.start(ADDR, ServerCredentials.createInsecure())
+    await app.start(ADDR, ServerCredentials.createInsecure())
   })
   test('GetCat (Unary)', async () => {
     const client = new CatClient(ADDR, ChannelCredentials.createInsecure())
@@ -119,6 +119,6 @@ describe('CatService (real world example)', () => {
     })
   })
   test('Stop server', async () => {
-    await server.stop()
+    await app.stop()
   })
 })

@@ -1,5 +1,5 @@
 import { Middleware, ProtoCatAnyCall } from '../call'
-import { CallType } from '../call-types'
+import { CallType } from '../../call-types'
 
 type ErrorHandler = (error: Error, call: ProtoCatAnyCall) => any
 

@@ -1,4 +1,4 @@
-import { Server, onError, CallType } from '..'
+import { ProtoCat, onError, CallType } from '..'
 import {
   GreetingService,
   GreetingClient,
@@ -13,11 +13,11 @@ import { Hello } from '../../dist/test/api/v1/hello_pb'
 
 const ADDR = '0.0.0.0:3000'
 describe('Error handling', () => {
-  const server = new Server()
+  const app = new ProtoCat()
   let lastError: any = null
-  afterAll(() => server.stop())
+  afterAll(() => app.stop())
   test('Setup', async () => {
-    server.addService(GreetingService, {
+    app.addService(GreetingService, {
       unary: call => {
         throw new Error('unary-error')
       },
@@ -43,7 +43,7 @@ describe('Error handling', () => {
         }
       },
     })
-    server.use(
+    app.use(
       onError((e, call) => {
         call.initialMetadata.set('onerror', `${call.type}-onerror`)
         call.trailingMetadata.set('onerror', `${call.type}-onerror`)
@@ -65,11 +65,11 @@ describe('Error handling', () => {
         }
       })
     )
-    server.use((call, next) => {
+    app.use((call, next) => {
       call.initialMetadata.set('initial', call.type)
       call.trailingMetadata.set('trailing', `${call.type}-trailing`)
     })
-    await server.start(ADDR, ServerCredentials.createInsecure())
+    await app.start(ADDR, ServerCredentials.createInsecure())
   })
   describe('Unary', () => {
     const client = new GreetingClient(ADDR, ChannelCredentials.createInsecure())

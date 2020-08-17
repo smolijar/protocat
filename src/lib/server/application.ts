@@ -1,12 +1,12 @@
 import * as grpc from '@grpc/grpc-js'
 import { ChannelOptions } from '@grpc/grpc-js/build/src/channel-options'
 import { ServiceImplementation, Middleware } from './call'
-import { stubToType } from './call-types'
-import { bindAsync, tryShutdown } from './grpc-helpers'
-import { composeMiddleware } from './middleware'
+import { stubToType } from '../call-types'
+import { bindAsync, tryShutdown } from '../misc/grpc-helpers'
+import { composeMiddleware } from './middleware/compose-middleware'
 
-export class Server<Extension = {}> {
-  /** Underlaying gRPC server */
+export class ProtoCat<Extension = {}> {
+  /** Underlying gRPC server */
   public server: grpc.Server
   /** Map of loaded generated method stubs */
   public methodDefinitions: Record<string, grpc.MethodDefinition<any, any>>
