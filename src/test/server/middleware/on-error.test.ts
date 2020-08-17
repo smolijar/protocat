@@ -1,60 +1,60 @@
-import { Server, onError, CallType } from '..'
+import { ProtoCat, onError, CallType } from '../../..'
 import {
   GreetingService,
   GreetingClient,
-} from '../../dist/test/api/v1/hello_grpc_pb'
+} from '../../../../dist/test/api/v1/hello_grpc_pb'
 import {
   ServerCredentials,
   ChannelCredentials,
   Metadata,
   StatusObject,
 } from '@grpc/grpc-js'
-import { Hello } from '../../dist/test/api/v1/hello_pb'
+import { Hello } from '../../../../dist/test/api/v1/hello_pb'
 
 const ADDR = '0.0.0.0:3000'
 describe('Error handling', () => {
-  const server = new Server()
+  const app = new ProtoCat()
   let lastError: any = null
-  afterAll(() => server.stop())
+  afterAll(() => app.stop())
   test('Setup', async () => {
-    server.addService(GreetingService, {
-      unary: ctx => {
+    app.addService(GreetingService, {
+      unary: call => {
         throw new Error('unary-error')
       },
-      serverStream: ctx => {
-        if (ctx.metadata.getMap().type === 'sync') {
+      serverStream: call => {
+        if (call.metadata.getMap().type === 'sync') {
           throw new Error('serverStream-sync-error')
         } else {
-          ctx.emit('error', new Error('serverStream-stream-error'))
+          call.emit('error', new Error('serverStream-stream-error'))
         }
       },
-      clientStream: ctx => {
-        if (ctx.metadata.getMap().type === 'sync') {
+      clientStream: call => {
+        if (call.metadata.getMap().type === 'sync') {
           throw new Error('clientStream-sync-error')
         } else {
-          ctx.emit('error', new Error('clientStream-stream-error'))
+          call.emit('error', new Error('clientStream-stream-error'))
         }
       },
-      bidi: ctx => {
-        if (ctx.metadata.getMap().type === 'sync') {
+      bidi: call => {
+        if (call.metadata.getMap().type === 'sync') {
           throw new Error('bidi-sync-error')
         } else {
-          ctx.emit('error', new Error('bidi-stream-error'))
+          call.emit('error', new Error('bidi-stream-error'))
         }
       },
     })
-    server.use(
-      onError((e, ctx) => {
-        ctx.initialMetadata.set('onerror', `${ctx.type}-onerror`)
-        ctx.trailingMetadata.set('onerror', `${ctx.type}-onerror`)
-        if (ctx.metadata.getMap().catch) {
+    app.use(
+      onError((e, call) => {
+        call.initialMetadata.set('onerror', `${call.type}-onerror`)
+        call.trailingMetadata.set('onerror', `${call.type}-onerror`)
+        if (call.metadata.getMap().catch) {
           lastError = e
           if (
-            ctx.type === CallType.SERVER_STREAM ||
-            ctx.type === CallType.BIDI
+            call.type === CallType.ServerStream ||
+            call.type === CallType.Bidi
           ) {
             // sync error not re-thrown on stream response, should end
-            ctx.end()
+            call.end()
           }
         } else {
           // Handler can be sync or async
@@ -65,11 +65,11 @@ describe('Error handling', () => {
         }
       })
     )
-    server.use((ctx, next) => {
-      ctx.initialMetadata.set('initial', ctx.type)
-      ctx.trailingMetadata.set('trailing', `${ctx.type}-trailing`)
+    app.use((call, next) => {
+      call.initialMetadata.set('initial', call.type)
+      call.trailingMetadata.set('trailing', `${call.type}-trailing`)
     })
-    await server.start(ADDR, ServerCredentials.createInsecure())
+    await app.start(ADDR, ServerCredentials.createInsecure())
   })
   describe('Unary', () => {
     const client = new GreetingClient(ADDR, ChannelCredentials.createInsecure())
@@ -85,30 +85,30 @@ describe('Error handling', () => {
       expect(lastError.message).toMatch(/unary-error/)
     })
     describe('Pass through rejects at client with correct status', () => {
-      let metaS: Promise<StatusObject> = null as any
-      let metaP: Promise<Metadata> = null as any
+      let status: Promise<StatusObject> = null as any
+      let metadata: Promise<Metadata> = null as any
       test('Throws', async () => {
         await expect(
           new Promise<Hello>((resolve, reject) => {
             const call = client.unary(new Hello(), (err, res) =>
               err ? reject(err) : resolve(res)
             )
-            metaS = new Promise(resolve => call.on('status', resolve))
-            metaP = new Promise(resolve => call.on('metadata', resolve))
+            status = new Promise(resolve => call.on('status', resolve))
+            metadata = new Promise(resolve => call.on('metadata', resolve))
           })
         ).rejects.toThrow(/unary-error/)
       })
       test('Error data', async () => {
-        expect((await metaS).code).toBe(2)
-        expect((await metaS).details).toBe('unary-error')
+        expect((await status).code).toBe(2)
+        expect((await status).details).toBe('unary-error')
       })
       test('Trailing (status) metadata', async () => {
-        expect((await metaS).metadata.getMap().trailing).toBe('unary-trailing')
-        expect((await metaS).metadata.getMap().onerror).toBe('unary-onerror')
+        expect((await status).metadata.getMap().trailing).toBe('unary-trailing')
+        expect((await status).metadata.getMap().onerror).toBe('unary-onerror')
       })
       test('Initial metadata', async () => {
-        expect((await metaP).getMap().initial).toEqual('unary')
-        expect((await metaP).getMap().onerror).toEqual('unary-onerror')
+        expect((await metadata).getMap().initial).toEqual('unary')
+        expect((await metadata).getMap().onerror).toEqual('unary-onerror')
       })
     })
   })
@@ -123,10 +123,10 @@ describe('Error handling', () => {
         clientMeta.set('catch', 'true')
         clientMeta.set('type', type)
         await new Promise<Hello>((resolve, reject) => {
-          const stream = client.serverStream(new Hello(), clientMeta)
-          stream.on('data', hello => hello)
-          stream.on('end', () => resolve())
-          stream.on('error', (e: any) => (e.code === 1 ? resolve() : reject(e)))
+          const call = client.serverStream(new Hello(), clientMeta)
+          call.on('data', hello => hello)
+          call.on('end', () => resolve())
+          call.on('error', (e: any) => (e.code === 1 ? resolve() : reject(e)))
         })
         expect(lastError.message).toMatch(
           new RegExp(`serverStream-${type}-error`)
@@ -136,17 +136,17 @@ describe('Error handling', () => {
         const clientMeta = new Metadata()
         clientMeta.set('type', type)
         let status: StatusObject = null as any
-        let metaP: Promise<Metadata> = null as any
+        let metadata: Promise<Metadata> = null as any
 
         test('Throws', async () => {
           await expect(
             new Promise<Hello>((resolve, reject) => {
-              const stream = client.serverStream(new Hello(), clientMeta)
-              stream.on('end', () => resolve())
-              metaP = new Promise(resolve => stream.on('metadata', resolve))
+              const call = client.serverStream(new Hello(), clientMeta)
+              call.on('end', () => resolve())
+              metadata = new Promise(resolve => call.on('metadata', resolve))
 
               // Does not emit `status`: status object is in error on failure
-              stream.on('error', e => {
+              call.on('error', e => {
                 status = e as any
                 reject(e)
               })
@@ -164,8 +164,10 @@ describe('Error handling', () => {
           expect(status.metadata.getMap().onerror).toBe('serverStream-onerror')
         })
         test('Initial metadata', async () => {
-          expect((await metaP).getMap().initial).toEqual('serverStream')
-          expect((await metaP).getMap().onerror).toEqual('serverStream-onerror')
+          expect((await metadata).getMap().initial).toEqual('serverStream')
+          expect((await metadata).getMap().onerror).toEqual(
+            'serverStream-onerror'
+          )
         })
       })
     })
@@ -192,7 +194,7 @@ describe('Error handling', () => {
       describe('Pass through rejects at client with correct status', () => {
         const clientMeta = new Metadata()
         clientMeta.set('type', type)
-        let metaP: Promise<Metadata> = null as any
+        let metadata: Promise<Metadata> = null as any
         let status: StatusObject = null as any
         test('Throws', async () => {
           await expect(
@@ -204,7 +206,7 @@ describe('Error handling', () => {
                 }
                 resolve(res)
               })
-              metaP = new Promise(resolve => call.on('metadata', resolve))
+              metadata = new Promise(resolve => call.on('metadata', resolve))
             })
           ).rejects.toThrow(`clientStream-${type}-error`)
         })
@@ -219,8 +221,10 @@ describe('Error handling', () => {
           expect(status.metadata.getMap().onerror).toBe('clientStream-onerror')
         })
         test('Initial metadata', async () => {
-          expect((await metaP).getMap().initial).toEqual('clientStream')
-          expect((await metaP).getMap().onerror).toEqual('clientStream-onerror')
+          expect((await metadata).getMap().initial).toEqual('clientStream')
+          expect((await metadata).getMap().onerror).toEqual(
+            'clientStream-onerror'
+          )
         })
       })
     })
@@ -236,10 +240,10 @@ describe('Error handling', () => {
         clientMeta.set('catch', 'true')
         clientMeta.set('type', type)
         await new Promise<Hello>((resolve, reject) => {
-          const stream = client.bidi(clientMeta)
-          stream.on('data', hello => hello)
-          stream.on('end', () => resolve())
-          stream.on('error', (e: any) => (e.code === 1 ? resolve() : reject(e)))
+          const call = client.bidi(clientMeta)
+          call.on('data', hello => hello)
+          call.on('end', () => resolve())
+          call.on('error', (e: any) => (e.code === 1 ? resolve() : reject(e)))
         })
         expect(lastError.message).toMatch(new RegExp(`bidi-${type}-error`))
       })
@@ -247,15 +251,15 @@ describe('Error handling', () => {
         const clientMeta = new Metadata()
         clientMeta.set('type', type)
         let status: StatusObject = null as any
-        let metaP: Promise<Metadata> = null as any
+        let metadata: Promise<Metadata> = null as any
         test('Throws', async () => {
           await expect(
             new Promise<Hello>((resolve, reject) => {
-              const stream = client.bidi(clientMeta)
-              stream.on('end', () => resolve())
-              metaP = new Promise(resolve => stream.on('metadata', resolve))
+              const call = client.bidi(clientMeta)
+              call.on('end', () => resolve())
+              metadata = new Promise(resolve => call.on('metadata', resolve))
               // Does not emit `status`: status object is in error on failure
-              stream.on('error', e => {
+              call.on('error', e => {
                 status = e as any
                 reject(e)
               })
@@ -271,8 +275,8 @@ describe('Error handling', () => {
           expect(status.metadata.getMap().onerror).toBe('bidi-onerror')
         })
         test('Initial metadata', async () => {
-          expect((await metaP).getMap().initial).toEqual('bidi')
-          expect((await metaP).getMap().onerror).toEqual('bidi-onerror')
+          expect((await metadata).getMap().initial).toEqual('bidi')
+          expect((await metadata).getMap().onerror).toEqual('bidi-onerror')
         })
       })
     })

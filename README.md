@@ -11,11 +11,11 @@ Modern, minimalist type-safe gRPC framework for Node.js
 ## Quickstart
 
 ```typescript
-import { Server } from 'protocat'
+import { ProtoCat } from 'protocat'
 import { CatService } from '../dist/cat_grpc_pb' // Generated service definition
 
-server = new Server()
-server.addService(CatService, {
+app = new ProtoCat()
+app.addService(CatService, {
     getCat: async call => {
         const cat = await getCatByName(call.request?.getName() ?? '')
         call.response.setName(cat.name)
@@ -25,7 +25,7 @@ server.addService(CatService, {
     }
 }
 
-server.start('0.0.0.0:3000', ServerCredentials.createInsecure())
+app.start('0.0.0.0:3000', ServerCredentials.createInsecure())
 ```
 
 ## Features
@@ -40,19 +40,19 @@ Protocat uses pure JavaScript gRPC client implementation `@grpc/grpc-js`
 
 Middlewares can be registered
 
-1. either globally, with `server.use` for all incoming requests,
+1. either globally, with `app.use` for all incoming requests,
 2. or at method level with `addService`, where instead of a single handler, an array of handlers can be provided (handler and middleware have the same API).
 
 ```typescript
-server.use(ctx => {
+app.use(call => {
   /*...*/
 })
-server.addService(CatService, {
+app.addService(CatService, {
   getCat: [
-    ctx => {
+    call => {
       /*...*/
     },
-    ctx => {
+    call => {
       /*...*/
     },
   ],
@@ -63,21 +63,21 @@ Note that grpc does not provide API to intercept all incoming requests, only to 
 
 #### `next` function
 
-Here is an example of a simple logger middleware. Apart from `context` each middleware (handler alike) has a `next` function. This is callstack of all subsequent middlewares and handlers. This feature is demonstrated in a simple logger middleware bellow.
+Here is an example of a simple logger middleware. Apart from `call` each middleware (handler alike) has a `next` function. This is callstack of all subsequent middlewares and handlers. This feature is demonstrated in a simple logger middleware bellow.
 
 ```typescript
-server.use(async (ctx, next) => {
+app.use(async (call, next) => {
   const start = performance.now()
-  console.log(` --> ${ctx.path}`, {
-    request: ctx.request?.toObject(),
-    clientMetadata: ctx.metadata.getMap(),
+  console.log(` --> ${call.path}`, {
+    request: call.request?.toObject(),
+    clientMetadata: call.metadata.getMap(),
   })
   await next()
-  console.log(` <-- ${ctx.path}`, {
-    response: ctx.response?.toObject(),
+  console.log(` <-- ${call.path}`, {
+    response: call.response?.toObject(),
     durationMillis: performance.now() - start,
-    initialMetadata: ctx.initialMetadata.getMap(),
-    trailingMetadata: ctx.trailingMetadata.getMap(),
+    initialMetadata: call.initialMetadata.getMap(),
+    trailingMetadata: call.trailingMetadata.getMap(),
   })
 })
 ```
@@ -87,17 +87,17 @@ server.use(async (ctx, next) => {
 All middlewares are executed in order they were registered, followed by an execution of handlers is provided order, regardless of middleware-service order. Not that in the following example, `C` middleware is registered after `CatService` and it is still called, even before the handlers.
 
 ```typescript
-server.use(async (ctx, next) => {
+app.use(async (call, next) => {
   console.log('A1')
   await next()
   console.log('A2')
 })
-server.use(async (ctx, next) => {
+app.use(async (call, next) => {
   console.log('B1')
   await next()
   console.log('B2')
 })
-server.addService(CatService, {
+app.addService(CatService, {
   getCat: [
     async (call, next) => {
       console.log('D1')
@@ -111,7 +111,7 @@ server.addService(CatService, {
     },
   ],
 })
-server.use(async (ctx, next) => {
+app.use(async (call, next) => {
   console.log('C1')
   await next()
   console.log('C2')
@@ -137,7 +137,7 @@ server.use(async (ctx, next) => {
 Error handling can be solved with a custom simple middleware, thanks to existing `next` cascading mechanism:
 
 ```typescript
-server.use(async (ctx, next) => {
+app.use(async (call, next) => {
   try {
     await next()
   } catch (error) {
@@ -158,17 +158,17 @@ There is an `onError` middleware creator, that can intercept all errors includin
 ```typescript
 import { onError } from 'protocat'
 
-server.use(
-  onError((e, ctx) => {
+app.use(
+  onError((e, call) => {
     // Set metadata
-    ctx.initialMetadata.set('error-code', e.code)
-    ctx.trailingMetadata.set('error-code', e.code)
+    call.initialMetadata.set('error-code', e.code)
+    call.trailingMetadata.set('error-code', e.code)
 
     // Consume the error
     if (notThatBad(e)) {
-      if (ctx.type === CallType.SERVER_STREAM || ctx.type === CallType.BIDI) {
+      if (call.type === CallType.ServerStream || call.type === CallType.Bidi) {
         // sync error not re-thrown on stream response, should end
-        ctx.end()
+        call.end()
       }
       return
     }
@@ -182,7 +182,7 @@ server.use(
 )
 ```
 
-- The handler is called with error and context for all errors (rejects from handlers, error emits from streams), meaning there can be theoretically more errors per request (multiple emitted errors) and some of them can be handled even after the executon of the next chain (error emits).
+- The handler is called with error and current call for all errors (rejects from handlers, error emits from streams), meaning there can be theoretically more errors per request (multiple emitted errors) and some of them can be handled even after the executon of the next chain (error emits).
 - Provided function can be sync on async. It can throw (or return rejected promise), but any other return value is ignored
 - Both initial and trailing metadata are available for change (unless you sent them manually)
 - In order to achieve "re-throwing", `emit` function on call is patched by `onError`. When calling `call.emit('error', e)`, the error is actually emitted in the stream only when the handler throws a new error. This means that when you emit an error in the middleware and consume it in the handler, streams are left "hanging", not errored and likely not even ended. If you truly wish to not propagate the error to client, it is recommended to end the streams in the handler. (This is not performed automatically, since there is no guarantee there should be no more than one error)
@@ -193,16 +193,16 @@ server.use(
 
 - [x] Middleware
 - [x] Error handling
-- [ ] Type safety
+- [x] Type safety
 
-- [ ] call / context terminology
-- [ ] call / stream terminology
-- [ ] metaS / metaP test naming confusion
+- [x] call / context terminology
+- [x] call / stream terminology
+- [x] status / metadata test naming confusion
 - [ ] metadata readme section
 - [ ] starter project
 - [ ] gRPC client
 - [ ] Call pool
-- [ ] Context type extension
+- [x] Context type extension
 - [ ] Partial definition
 - [ ] Serialization level caching
 - [ ] Docs

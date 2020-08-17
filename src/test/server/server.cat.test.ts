@@ -1,4 +1,4 @@
-import { Server } from '../..'
+import { ProtoCat } from '../..'
 import { CatService, CatClient } from '../../../dist/test/api/v1/cat_grpc_pb'
 import { Cat } from '../../../dist/test/api/type/cat_pb'
 import { ServerCredentials, ChannelCredentials } from '@grpc/grpc-js'
@@ -12,10 +12,10 @@ import {
 
 const ADDR = '0.0.0.0:3000'
 describe('CatService (real world example)', () => {
-  let server: Server
+  let app: ProtoCat
   test('Setup and run server', async () => {
-    server = new Server()
-    server.addService(CatService, {
+    app = new ProtoCat()
+    app.addService(CatService, {
       getCat: call => call.response.setName(call.request?.getName() ?? ''),
       watchCats: async call => {
         call.flushInitialMetadata()
@@ -31,8 +31,7 @@ describe('CatService (real world example)', () => {
         let travelled = 0
         let lastLat: number | null = null
         let lastLng: number | null = null
-        // TODO: This would be cool if inferred
-        call.on('data', (req: ShareLocationRequest) => {
+        call.on('data', req => {
           travelled +=
             lastLat && lastLng
               ? Math.sqrt(
@@ -56,7 +55,7 @@ describe('CatService (real world example)', () => {
         call.initialMetadata.set('type', 'initialBidi')
         call.trailingMetadata.set('type', 'trailingBidi')
         call.flushInitialMetadata()
-        call.on('data', (req: FeedCatsRequest) => {
+        call.on('data', req => {
           call.write(new Cat().setName('Foo'))
         })
         call.on('end', () => {
@@ -64,7 +63,7 @@ describe('CatService (real world example)', () => {
         })
       },
     })
-    await server.start(ADDR, ServerCredentials.createInsecure())
+    await app.start(ADDR, ServerCredentials.createInsecure())
   })
   test('GetCat (Unary)', async () => {
     const client = new CatClient(ADDR, ChannelCredentials.createInsecure())
@@ -78,49 +77,48 @@ describe('CatService (real world example)', () => {
   test('WatchCats (client-cancelled server side stream)', async () => {
     const client = new CatClient(ADDR, ChannelCredentials.createInsecure())
     await new Promise<Cat>((resolve, reject) => {
-      const stream = client.watchCats(new WatchCatsRequest())
+      const call = client.watchCats(new WatchCatsRequest())
       const seenCats: string[] = []
-      stream.on('data', cat => {
+      call.on('data', cat => {
         seenCats.push(cat.getName())
         if (seenCats.length > 10) {
-          stream.cancel()
+          call.cancel()
           resolve()
         }
       })
-      stream.on('error', (e: any) => (e.code === 1 ? resolve() : reject(e)))
+      call.on('error', (e: any) => (e.code === 1 ? resolve() : reject(e)))
     })
   })
   test('ShareLocation (client streaming)', async () => {
     const client = new CatClient(ADDR, ChannelCredentials.createInsecure())
     const res = await new Promise<ShareLocationResponse>((resolve, reject) => {
-      const stream = client.shareLocation((err, res) =>
+      const call = client.shareLocation((err, res) =>
         err ? reject(err) : resolve(res)
       )
       for (let i = 0; i < 10; ++i) {
-        stream.write(new ShareLocationRequest().setLat(i * 2).setLng(i))
+        call.write(new ShareLocationRequest().setLat(i * 2).setLng(i))
       }
-      stream.end()
+      call.end()
     })
     expect(res.getTravelledMeters()).toBeGreaterThan(0)
   })
   test('FeedCats (bidi)', async () => {
     const client = new CatClient(ADDR, ChannelCredentials.createInsecure())
     await new Promise<ShareLocationResponse>((resolve, reject) => {
-      const stream = client.feedCats()
-      // patchEmitter(stream, 'bidi CLIENT')
+      const call = client.feedCats()
       let fedCats = 0
-      stream.write(new FeedCatsRequest().setFood('fish'))
-      stream.on('end', resolve)
-      stream.on('data', res => {
+      call.write(new FeedCatsRequest().setFood('fish'))
+      call.on('end', resolve)
+      call.on('data', res => {
         if (fedCats++ < 3) {
-          stream.write(new FeedCatsRequest().setFood('fish'))
+          call.write(new FeedCatsRequest().setFood('fish'))
         } else {
-          stream.end()
+          call.end()
         }
       })
     })
   })
   test('Stop server', async () => {
-    await server.stop()
+    await app.stop()
   })
 })

@@ -1,7 +1,7 @@
-import { Middleware, AnyContext } from '../context'
-import { CallType } from '../call-types'
+import { Middleware, ProtoCatAnyCall } from '../call'
+import { CallType } from '../../call-types'
 
-type ErrorHandler = (error: Error, context: AnyContext) => any
+type ErrorHandler = (error: Error, call: ProtoCatAnyCall) => any
 
 /**
  * Patches emit function to intercept errors with a handler to be able to consume or map dispatched errors on stream, before existing listeners are invoked.
@@ -39,9 +39,9 @@ export const onError = (handler: ErrorHandler): Middleware => async (
   next
 ) => {
   if (
-    call.type === CallType.SERVER_STREAM ||
-    call.type === CallType.BIDI ||
-    call.type === CallType.CLIENT_STREAM
+    call.type === CallType.ServerStream ||
+    call.type === CallType.Bidi ||
+    call.type === CallType.ClientStream
   ) {
     mapError(call, handler)
   }
