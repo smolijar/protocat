@@ -4,6 +4,8 @@
   "compilerOptions": {
     "target": "ES2019",
     "module": "CommonJS",
+    "declaration": true,
+    "declarationMap": true,
     "lib": ["ES2019", "DOM"],
     "allowJs": true,
     "incremental": true,
