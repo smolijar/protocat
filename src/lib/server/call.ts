@@ -3,7 +3,9 @@ import { RemoveIdxSgn, TypedOnData } from '../misc/type-helpers'
 import { CallType } from '../call-types'
 import { Message } from 'google-protobuf'
 
-/** ProtoCat call */
+/**
+ * Extended gRPC call
+ */
 export type ProtoCatCall<
   Extension = {},
   Req = Message,
@@ -42,19 +44,31 @@ export type ProtoCatCall<
     ? TypedOnData<grpc.ServerDuplexStream<Req, Res>, Req>
     : {})
 
+/**
+ * Call stack of the subsequent middlewares and handlers.
+ */
 export type NextFn = () => Promise<void>
 
+/**
+ * Union of all context types for generic middleware interface
+ */
 export type ProtoCatAnyCall<Extension = {}> =
   | ProtoCatCall<Extension, Message, Message, CallType.Unary>
   | ProtoCatCall<Extension, Message, Message, CallType.ServerStream>
   | ProtoCatCall<Extension, Message, Message, CallType.ClientStream>
   | ProtoCatCall<Extension, Message, Message, CallType.Bidi>
 
+/**
+ * Application generic middleware
+ */
 export type Middleware<Extension = {}> = (
   call: ProtoCatAnyCall<Extension>,
   next: NextFn
 ) => any
 
+/**
+ * @internal
+ */
 type MethodDef2CallType<
   M extends grpc.MethodDefinition<any, any>
 > = M['requestStream'] extends true
@@ -65,7 +79,10 @@ type MethodDef2CallType<
   ? CallType.ServerStream
   : CallType.Unary
 
-/** Convert a single method definition to service handler type */
+/**
+ * Convert a single method definition to service handler type
+ * @internal
+ */
 type MethodDef2ServiceHandler<
   H,
   Extension = {}
@@ -76,7 +93,17 @@ type MethodDef2ServiceHandler<
     ) => any
   : never
 
-/** Create service handler type for whole client definition */
+/**
+ * Create service handler type for whole client definition.
+ *
+ * Useful for better code-splitting
+ * ```typescript
+ * const unaryHandler: ServiceImplementation<
+ *   IGreetingService,
+ *   MyContext
+ * >['unary'] = call => call.uid
+ * ```
+ */
 export type ServiceImplementation<T, Extension = {}> = RemoveIdxSgn<
   {
     [M in keyof T]:

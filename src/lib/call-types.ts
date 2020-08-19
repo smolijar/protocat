@@ -6,7 +6,10 @@ export enum CallType {
   Unary = 'unary',
 }
 
-/** Assign call type from generated definition */
+/**
+ * Assign call type from generated definition
+ * @internal
+ */
 export const stubToType = (
   s: Record<'responseStream' | 'requestStream', boolean>
 ) =>
