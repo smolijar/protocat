@@ -15,8 +15,10 @@
     "node",
     "microservice",
     "api",
+    "backend",
     "server"
   ],
+  "homepage": "https://grissius.github.io/protocat/",
   "scripts": {
     "build": "tsc",
     "build:proto": "rm -rf ./dist/test/api && mkdir -p ./dist/test/api && grpc_tools_node_protoc --js_out=import_style=commonjs,binary:./dist/test/api --ts_out=generate_package_definition:./dist/test/api --grpc_out=grpc_js:./dist/test/api -I ./src/test/api ./src/test/api/**/*.proto",
@@ -25,6 +27,9 @@
     "test:coverage": "npm run test -- --collectCoverage",
     "test:codecov": "codecov",
     "prepare": "npm run build",
+    "docs": "npm run docs:typedoc && npm run docs:docusaurus",
+    "docs:typedoc": "rm -rf ./website/docs/api && typedoc --out ./website/docs/api",
+    "docs:docusaurus": "npm install --prefix=website && npm run build --prefix=website",
     "check": "npm-check -i app -i errors -i config -i index & exit 0",
     "cs:eslint:check": "eslint --ignore-path .gitignore '**/*.ts' -f codeframe",
     "cs:eslint:fix": "npm run cs:eslint:check -- --fix",
@@ -51,6 +56,8 @@
     "npm-check": "^5.9.2",
     "prettier": "^2.0.5",
     "ts-jest": "^26.1.0",
+    "typedoc": "^0.18.0",
+    "typedoc-plugin-markdown": "^2.4.0",
     "typescript": "^3.8.3"
   }
 }

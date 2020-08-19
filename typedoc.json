@@ -1,0 +1,9 @@
+{
+  "inputFiles": ["./src/lib"],
+  "exclude": ["./src/lib/misc/*"],
+  "mode": "file",
+  "theme": "docusaurus2",
+  "plugin": "typedoc-plugin-markdown",
+  "readme": "none",
+  "stripInternal": true
+}
