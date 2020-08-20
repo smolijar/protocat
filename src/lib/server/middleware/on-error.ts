@@ -8,6 +8,7 @@ type ErrorHandler = (error: Error, call: ProtoCatAnyCall) => any
  * Error events are passed on the handler and metadata are passed on re-thrown errors.
  * @param emitter gRPC call
  * @param handler Error handler that can either throw an error, that will be passed on or not throw, in which case cascade is stopped and call does not end with error
+ * @internal
  */
 const mapError = (emitter: any, handler: ErrorHandler) => {
   const originalEmit = emitter.emit
@@ -30,9 +31,25 @@ const mapError = (emitter: any, handler: ErrorHandler) => {
 }
 
 /**
- * onError creates a Protocat middleware that can be used to intercept errors from various origins, either from:
- *  - sync throws (or async rejects) from following middlewares (or handlers) in the call stack (chain of next functions)
+ * onError creates a ProtoCat middleware that can be used to intercept errors from various origins, either from:
+ *  - sync throws (or async rejects) from the following middlewares (or handlers) in the call stack (chain of next functions)
  *  - error emits on streamed calls
+ *
+ * No error is ever send to client
+ * ```typescript
+ * app.use(onError(() => {}))
+ * ```
+ *
+ * Errors are logged and rethrown without stack trace
+ * ```typescript
+ * app.use(onError((e, call) => {
+ *   console.log(e, call)
+ *   e.stack = undefined
+ *   throw e
+ * }))
+ * ```
+ *
+ * @param handler Custom error handler for re-throwing errors and error emits. Result is awaited.
  */
 export const onError = (handler: ErrorHandler): Middleware => async (
   call,

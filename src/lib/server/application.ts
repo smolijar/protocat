@@ -5,15 +5,18 @@ import { stubToType } from '../call-types'
 import { bindAsync, tryShutdown } from '../misc/grpc-helpers'
 import { composeMiddleware } from './middleware/compose-middleware'
 
+/**
+ * The main ProtoCat server application class
+ */
 export class ProtoCat<Extension = {}> {
   /** Underlying gRPC server */
   public server: grpc.Server
   /** Map of loaded generated method stubs */
-  public methodDefinitions: Record<string, grpc.MethodDefinition<any, any>>
+  private methodDefinitions: Record<string, grpc.MethodDefinition<any, any>>
   /** Map of loaded method service implementations */
-  public serviceHandlers: Record<string, Middleware[]>
+  private serviceHandlers: Record<string, Middleware[]>
   /** Global middleware functions */
-  public middleware: Array<Middleware<Extension>>
+  private readonly middleware: Array<Middleware<Extension>>
   constructor(options?: ChannelOptions) {
     this.server = new grpc.Server(options)
     this.methodDefinitions = {}
@@ -21,10 +24,16 @@ export class ProtoCat<Extension = {}> {
     this.serviceHandlers = {}
   }
 
+  /**
+   * Add a global gRPC middleware for the application
+   */
   public use(...middleware: Array<Middleware<Extension>>) {
     this.middleware.push(...middleware)
   }
 
+  /**
+   * Add service stub and its definition
+   */
   public addService<
     T extends grpc.ServiceDefinition<grpc.UntypedServiceImplementation>
   >(
@@ -42,7 +51,11 @@ export class ProtoCat<Extension = {}> {
     }
   }
 
-  registerHandlers() {
+  /**
+   * Before start (when no middleware can be added), bind compose all registered middleware and handlers with server.register API
+   * @internal
+   */
+  private registerHandlers() {
     for (const methodName in this.methodDefinitions) {
       const methodDefinition = this.methodDefinitions[methodName]
       const methodHandlers: any[] = this.serviceHandlers[methodName] // HandlerCS<any, any>[] | HandlerU<any, any>[] | HandlerBS<any, any>[] | HandlerSS<any, any>[]
@@ -61,17 +74,29 @@ export class ProtoCat<Extension = {}> {
     }
   }
 
+  /**
+   * Internally register handlers, bind port and start server
+   */
   async start(address: string, creds: grpc.ServerCredentials) {
     this.registerHandlers()
     await bindAsync(this.server, address, creds)
     this.server.start()
   }
 
+  /**
+   * Try to shutdown server gracefully.
+   */
   stop() {
     return tryShutdown(this.server)
   }
 }
 
+/**
+ * Wrap ProtoCat middleware to grpc signature handler, ready for `server.register`.
+ * Prepare context for middleware, await it, handle metadata, callback, errors.
+ * @param methodHandler Single ProtoCat middleware
+ * @internal
+ */
 const wrapToHandler = (
   methodDefinition: grpc.MethodDefinition<any, any>,
   methodHandler: any

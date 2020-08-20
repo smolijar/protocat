@@ -1,5 +1,9 @@
 import { Middleware } from '../call'
 
+/**
+ * Compose a list of Middlewares into one, connecting the next function stack
+ * @internal
+ */
 export const composeMiddleware = (middleware: Middleware[]): Middleware => {
   return async (call, next) => {
     const dispatch = async (i: number): Promise<void> => {
