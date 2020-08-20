@@ -68,6 +68,7 @@ describe('Error handling', () => {
     app.use((call, next) => {
       call.initialMetadata.set('initial', call.type)
       call.trailingMetadata.set('trailing', `${call.type}-trailing`)
+      return next()
     })
     await app.start(ADDR, ServerCredentials.createInsecure())
   })

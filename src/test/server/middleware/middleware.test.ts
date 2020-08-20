@@ -21,18 +21,6 @@ describe('Middleware', () => {
       // expect correctly closed brackets without overlaps
       expect(acc).toBe(chain + chain.split('').reverse().join(''))
     })
-    test('Next implicit when missing', async () => {
-      const chain = 'abc'
-      let acc = ''
-      await composeMiddleware(
-        chain.split('').map(
-          (char): Middleware => (call, next) => {
-            acc += char
-          }
-        )
-      )(null as any, null as any)
-      expect(acc).toBe(chain)
-    })
     test('Error handling', async () => {
       let lastErr = ''
       const syncError: Middleware = (call, next) => {
@@ -40,8 +28,8 @@ describe('Middleware', () => {
       }
       const asyncError: Middleware = (call, next) =>
         Promise.reject(new Error('asyncError'))
-      const dud1: Middleware = jest.fn()
-      const dud2: Middleware = jest.fn()
+      const dud1: Middleware = jest.fn((call, next) => next())
+      const dud2: Middleware = jest.fn((call, next) => next())
       const catcher: Middleware = async (call, next) => {
         lastErr = await next().catch(e => e.message)
       }

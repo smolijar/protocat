@@ -29,10 +29,11 @@ describe('HelloService (boring, predictable and exhaustive)', () => {
   test('addService', () => {
     app.addService(GreetingService, {
       unary: [
-        call => {
+        (call, next) => {
           call.initialMetadata.set('type', 'initialUnary')
           call.initialMetadata.set('client', call.metadata.getMap().client)
           call.trailingMetadata.set('type', 'trailingUnary')
+          return next()
         },
         call => {
           call.response.setName(call.request?.getName() ?? '')
