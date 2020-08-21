@@ -12,6 +12,10 @@ export type ProtoCatCall<
   Res = Message,
   Type extends CallType = CallType
 > = {
+  /** Client metadata */
+  readonly metadata: grpc.Metadata
+  /** Client metadata */
+  readonly meta: Record<string, string>
   /** Server initial metadata (sent automatically for unary / client stream) */
   initialMetadata: grpc.Metadata
   /** Manually send initial metadata for server stream / bidi */

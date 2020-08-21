@@ -29,14 +29,14 @@ describe('Error handling', () => {
         }
       },
       clientStream: call => {
-        if (call.metadata.getMap().type === 'sync') {
+        if (call.meta.type === 'sync') {
           throw new Error('clientStream-sync-error')
         } else {
           call.emit('error', new Error('clientStream-stream-error'))
         }
       },
       bidi: call => {
-        if (call.metadata.getMap().type === 'sync') {
+        if (call.meta.type === 'sync') {
           throw new Error('bidi-sync-error')
         } else {
           call.emit('error', new Error('bidi-stream-error'))
