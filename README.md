@@ -34,7 +34,7 @@ app.addService(CatService, {
     }
 }
 
-app.start('0.0.0.0:3000', ServerCredentials.createInsecure())
+app.start('0.0.0.0:3000')
 ```
 
 ## Docs
