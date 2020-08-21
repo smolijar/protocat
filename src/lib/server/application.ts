@@ -1,6 +1,6 @@
 import * as grpc from '@grpc/grpc-js'
 import { ChannelOptions } from '@grpc/grpc-js/build/src/channel-options'
-import { ServiceImplementation, Middleware } from './call'
+import { Middleware, ServiceImplementationExtended } from './call'
 import { stubToType } from '../call-types'
 import { bindAsync, tryShutdown } from '../misc/grpc-helpers'
 import { composeMiddleware } from './middleware/compose-middleware'
@@ -29,7 +29,7 @@ export class ProtoCat<Extension = {}> {
     T extends grpc.ServiceDefinition<grpc.UntypedServiceImplementation>
   >(
     serviceDefinition: T,
-    serviceImplementation: ServiceImplementation<T, Extension>
+    serviceImplementation: ServiceImplementationExtended<T, Extension>
   ) {
     for (const methodName in serviceDefinition) {
       // Path is FQN with namespace to avoid collisions

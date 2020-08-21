@@ -21,16 +21,23 @@ describe('Context extension types', () => {
   }
   app.use(mdw)
 
-  // Service definition inferred and explicit
   const unaryHandler: ServiceImplementation<
     IGreetingService,
     MyContext
   >['unary'] = call => call.uid
+
+  const serviceImpl: ServiceImplementation<IGreetingService, MyContext> = {
+    bidi: call => call.uid,
+    clientStream: call => call.uid,
+    serverStream: call => call.uid,
+    unary: call => call.uid,
+  }
+  // Service definition inferred and explicit
   app.addService(GreetingService, {
     bidi: call => call.uid,
-    unary: unaryHandler,
+    unary: [unaryHandler],
     serverStream: call => call.uid,
-    clientStream: call => call.uid,
+    clientStream: [call => call.uid, serviceImpl.clientStream],
   })
   test('Type check', jest.fn())
 })
