@@ -26,9 +26,15 @@ Initial metadata sent to client on each call. Along with trailing metadata has t
 
 It can be accessed via `call.initialMetadata` for read and update.
 
-Initial metadata can be dispatched before the response is actually sent. To explicitly push the metadata to client, use `call.flushInitialMetadata()`, after which you can no longer change it nor send it again. If you don't call it manually, it will be called for you when the handlers are finished, so you can just set the values.
+Initial metadata can be dispatched before the response is actually sent. To explicitly push the metadata to client, use `call.flushInitialMetadata()`, after which you can no longer change it nor send it again. For single-response types (unary, client streaming), if you don't call it manually, it will be called for you when the handlers are finished, so you can just set the values.
 
 For server streaming calls (server-stream and bidi), you must always send the metadata manually.
+
+:::caution
+
+When calling `call.flushInitialMetadata` in server streaming calls in handler, it is guaranteed that all middlewares "opening blocks" (before awaiting `next`) were called, but not necessarily the "closing blocks". Meaning if you set metadata in middleware after awaiting `next` and flush metadata in handler for server streaming calls without delaying execution, they will be probably send before the middleware sets them.
+
+:::
 
 If an error occurs and the handler fails, existing metadata are send and received as if the call succeeded.
 

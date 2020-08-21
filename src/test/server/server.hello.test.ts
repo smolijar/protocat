@@ -21,6 +21,7 @@ describe('HelloService (boring, predictable and exhaustive)', () => {
   test('use', () => {
     app.use(async (call, next) => {
       const start = performance.now()
+      call.initialMetadata.set('start-time', start.toString())
       await next()
       const ms = performance.now() - start
       call.initialMetadata.set('response-time', ms.toString())
@@ -83,6 +84,8 @@ describe('HelloService (boring, predictable and exhaustive)', () => {
   })
   const responseTimeSet = (m: Metadata) =>
     expect(Number(m.getMap()['response-time'])).toBeGreaterThan(0)
+  const startTimeSet = (m: Metadata) =>
+    expect(Number(m.getMap()['start-time'])).toBeGreaterThan(0)
 
   describe('Unary', () => {
     const client = new GreetingClient(ADDR, ChannelCredentials.createInsecure())
@@ -105,7 +108,10 @@ describe('HelloService (boring, predictable and exhaustive)', () => {
     test('Initial metadata', async () => {
       expect((await metadata).getMap().type).toEqual('initialUnary')
     })
-    test('Middleware ran', async () => {
+    test('Middleware ran (pre-next)', async () => {
+      startTimeSet(await metadata)
+    })
+    test('Middleware ran (post-next)', async () => {
       responseTimeSet(await metadata)
     })
     test('Client metadata', async () => {
@@ -138,7 +144,10 @@ describe('HelloService (boring, predictable and exhaustive)', () => {
     test('Initial metadata', async () => {
       expect((await metadata).getMap().type).toEqual('initialServerStream')
     })
-    test('Middleware ran', async () => {
+    test('Middleware ran (pre-next)', async () => {
+      startTimeSet(await metadata)
+    })
+    test.skip('Middleware ran (post-next)', async () => {
       responseTimeSet(await metadata)
     })
     test('Client metadata', async () => {
@@ -173,7 +182,10 @@ describe('HelloService (boring, predictable and exhaustive)', () => {
     test('Initial metadata', async () => {
       expect((await metadata).getMap().type).toEqual('initialClientStream')
     })
-    test('Middleware ran', async () => {
+    test('Middleware ran (pre-next)', async () => {
+      startTimeSet(await metadata)
+    })
+    test('Middleware ran (post-next)', async () => {
       responseTimeSet(await metadata)
     })
     test('Client metadata', async () => {
@@ -211,7 +223,10 @@ describe('HelloService (boring, predictable and exhaustive)', () => {
     test('Initial metadata', async () => {
       expect((await metadata).getMap().type).toEqual('initialBidi')
     })
-    test('Middleware ran', async () => {
+    test('Middleware ran (pre-next)', async () => {
+      startTimeSet(await metadata)
+    })
+    test.skip('Middleware ran (post-next)', async () => {
       responseTimeSet(await metadata)
     })
     test('Client metadata', async () => {
