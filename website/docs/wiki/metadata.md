@@ -20,6 +20,8 @@ Initial metadata is sent by client on each call and received by the server immed
 
 In the service handler you can access it from `call.metadata` for reading.
 
+`call.metadata` is the original `Metadata` instance. Sometimes it is too verbose. You can use `call.meta` for simple object access!
+
 ## Initial metadata
 
 Initial metadata sent to client on each call. Along with trailing metadata has the role of HTTP response headers.
