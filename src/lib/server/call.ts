@@ -24,6 +24,12 @@ export type ProtoCatCall<
   trailingMetadata: grpc.Metadata
   /** RPC path "/[package].[service]/[method]", e.g. /cats.v1.Cat/GetCat */
   path: string
+  /** Protofile package name */
+  package: string
+  /** Protofile service name (interface name) */
+  service: string
+  /** Protofile rpc name */
+  method: string
   /** Type of call */
   type: Type
   /** Request message: only unary and server-stream */

@@ -2,7 +2,7 @@ import * as grpc from '@grpc/grpc-js'
 import { ChannelOptions } from '@grpc/grpc-js/build/src/channel-options'
 import { Middleware, ServiceImplementationExtended } from './call'
 import { stubToType } from '../call-types'
-import { bindAsync, tryShutdown } from '../misc/grpc-helpers'
+import { bindAsync, tryShutdown, path2Fragments } from '../misc/grpc-helpers'
 import { composeMiddleware } from './middleware/compose-middleware'
 
 /**
@@ -120,6 +120,7 @@ const wrapToHandler = (
       trailingMetadata,
       initialMetadata,
       path: methodDefinition.path,
+      ...path2Fragments(methodDefinition.path),
       flushInitialMetadata: () => call.sendMetadata(initialMetadata),
       type,
     })
