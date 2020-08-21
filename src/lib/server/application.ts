@@ -123,11 +123,12 @@ const wrapToHandler = (
     call.response = new methodDefinition.responseType()
     try {
       await methodHandler(call)
-      call.sendMetadata(call.initialMetadata)
+      call.flushInitialMetadata()
       if (cb) {
         cb(null, call.response, call.trailingMetadata)
       }
     } catch (e) {
+      call.flushInitialMetadata()
       if (cb) {
         cb(e, null, call.trailingMetadata)
       } else {

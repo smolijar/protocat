@@ -25,6 +25,7 @@ const mapError = (emitter: any, handler: ErrorHandler) => {
     try {
       await handler(args[1], emitter)
     } catch (e) {
+      emitter.flushInitialMetadata()
       originalEmit.apply(emitter, ['error', addMeta(e)])
     }
   }
