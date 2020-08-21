@@ -3,6 +3,7 @@ import {
   GreetingService,
   IGreetingService,
 } from '../../../dist/test/api/v1/hello_grpc_pb'
+import { path2Fragments } from '../../lib/misc/grpc-helpers'
 
 describe('Context extension types', () => {
   interface MyContext {
@@ -40,4 +41,25 @@ describe('Context extension types', () => {
     clientStream: [call => call.uid, serviceImpl.clientStream],
   })
   test('Type check', jest.fn())
+})
+describe('path2Fragments', () => {
+  test('Parses package, service and method', () => {
+    const paths = [
+      {
+        path: '/cats.v1.Cat/GetCat',
+        expect: { package: 'cats.v1', service: 'Cat', method: 'GetCat' },
+      },
+      {
+        path: '/Cat/GetCat',
+        expect: { package: '', service: 'Cat', method: 'GetCat' },
+      },
+      {
+        path: '',
+        expect: { package: '', service: '', method: '' },
+      },
+    ]
+    for (const p of paths) {
+      expect(path2Fragments(p.path)).toMatchObject(p.expect)
+    }
+  })
 })

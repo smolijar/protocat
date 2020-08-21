@@ -17,3 +17,13 @@ export const bindAsync = (
       err ? reject(err) : resolve(port)
     )
   )
+
+export const path2Fragments = (path: string) => {
+  const [, ps, m] = path.split('/')
+  const [, p, s] = ps?.match(/(.*)\.(.*)/) ?? [undefined, undefined, ps]
+  return {
+    package: p ?? '',
+    service: s ?? '',
+    method: m ?? '',
+  }
+}
