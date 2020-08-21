@@ -1,7 +1,7 @@
 module.exports = {
   title: 'ProtoCat',
   tagline: 'Modern, minimalist type-safe gRPC framework for Node.js',
-  url: 'https://your-docusaurus-test-site.com',
+  url: 'https://grissius.github.io/protocat/',
   baseUrl: '/protocat/',
   onBrokenLinks: 'throw',
   favicon: 'img/favicon.ico',
@@ -29,7 +29,7 @@ module.exports = {
           position: 'left',
         },
         {
-          href: 'https://github.com/facebook/docusaurus',
+          href: 'https://github.com/grissius/protocat',
           position: 'right',
           className: 'header-github-link',
         },
