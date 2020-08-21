@@ -1,7 +1,7 @@
 import { ProtoCat } from '../..'
 import { CatService, CatClient } from '../../../dist/test/api/v1/cat_grpc_pb'
 import { Cat } from '../../../dist/test/api/type/cat_pb'
-import { ServerCredentials, ChannelCredentials } from '@grpc/grpc-js'
+import { ChannelCredentials } from '@grpc/grpc-js'
 import {
   GetCatRequest,
   WatchCatsRequest,
@@ -63,7 +63,7 @@ describe('CatService (real world example)', () => {
         })
       },
     })
-    await app.start(ADDR, ServerCredentials.createInsecure())
+    await app.start(ADDR)
   })
   test('GetCat (Unary)', async () => {
     const client = new CatClient(ADDR, ChannelCredentials.createInsecure())

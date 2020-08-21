@@ -4,7 +4,6 @@ title: Starting a server
 
 ```typescript
 import { ProtoCat } from 'protocat'
-import { ServerCredentials } from '@grpc/grpc-js'
 import { CatRegisterService } from '../cat_grpc_pb'
 
 const findCat = (name: string) =>
@@ -23,7 +22,7 @@ app.addService(CatRegisterService, {
   },
 })
 
-app.start('0.0.0.0:3000', ServerCredentials.createInsecure())
+app.start('0.0.0.0:3000')
 ```
 
 Test your running server with GUI client [BloomRPC](https://github.com/uw-labs/bloomrpc) or CLI tool [grpcurl](https://github.com/fullstorydev/grpcurl):

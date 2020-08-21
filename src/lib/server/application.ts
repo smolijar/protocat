@@ -76,8 +76,12 @@ export class ProtoCat<Extension = {}> {
 
   /**
    * Internally register handlers, bind port and start server
+   * @param address e.g. `0.0.0.0:3000`
    */
-  async start(address: string, creds: grpc.ServerCredentials) {
+  async start(
+    address: string,
+    creds: grpc.ServerCredentials = grpc.ServerCredentials.createInsecure()
+  ) {
     this.registerHandlers()
     await bindAsync(this.server, address, creds)
     this.server.start()
