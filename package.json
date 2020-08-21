@@ -39,7 +39,7 @@
     "cs:eclint:fix": "eclint fix '**/*'"
   },
   "dependencies": {
-    "@grpc/grpc-js": "^1.1.5",
+    "@grpc/grpc-js": "1.1.5",
     "@types/google-protobuf": "^3.7.3"
   },
   "devDependencies": {
