@@ -106,8 +106,13 @@ type MethodDef2ServiceHandler<
  */
 export type ServiceImplementation<T, Extension = {}> = RemoveIdxSgn<
   {
-    [M in keyof T]:
-      | MethodDef2ServiceHandler<T[M], Extension>
-      | Array<MethodDef2ServiceHandler<T[M], Extension>>
+    [M in keyof T]: MethodDef2ServiceHandler<T[M], Extension>
   }
 >
+
+/** ServiceImplementation with array of middlewares */
+export type ServiceImplementationExtended<T, Extension = {}> = {
+  [M in keyof ServiceImplementation<T, Extension>]:
+    | ServiceImplementation<T, Extension>[M]
+    | Array<ServiceImplementation<T, Extension>[M]>
+}
