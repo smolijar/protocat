@@ -2,7 +2,7 @@
 title: Stub generation
 ---
 
-> This sections assumes you don't have no code-generation task or process. If you already are generating stubs, just make sure your stubs use `@grpc/grpc-js` and not `grpc` implementation, and that you have TypeScript definitions as well. If doubtful, compare the build task to one in this section.
+> This section assumes you don't have any code-generation task or process. If you already are generating stubs, just make sure your stubs use `@grpc/grpc-js` and not `grpc` implementation, and that you have TypeScript definitions as well. If doubtful, compare the build task to the one in this section.
 
 Create a `cat.proto` file:
 

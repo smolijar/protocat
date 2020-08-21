@@ -4,9 +4,9 @@ title: Metadata
 
 ## Metadata in gRPC
 
-Metadata in gRPC are an equivalent of HTTP headers: schema-less map of strings clinent and server add to their data.
+Metadata in gRPC are an equivalent of HTTP headers: schema-less map of strings client and server add to their data.
 
-There are three of metadata:
+There are three types of metadata:
 
 1. **(client) Metadata** - Sent with the request
 1. **(server) Initial metadata** - Sent on request received
@@ -24,7 +24,7 @@ In the service handler you can access it from `call.metadata` for reading.
 
 ## Initial metadata
 
-Initial metadata sent to client on each call. Along with trailing metadata has the role of HTTP response headers.
+Initial metadata is sent to client on each call. Along with trailing metadata, initial metadata has the role of HTTP response headers.
 
 It can be accessed via `call.initialMetadata` for read and update.
 
@@ -34,11 +34,11 @@ For server streaming calls (server-stream and bidi), you must always send the me
 
 :::caution
 
-When calling `call.flushInitialMetadata` in server streaming calls in handler, it is guaranteed that all middlewares "opening blocks" (before awaiting `next`) were called, but not necessarily the "closing blocks". Meaning if you set metadata in middleware after awaiting `next` and flush metadata in handler for server streaming calls without delaying execution, they will be probably send before the middleware sets them.
+When calling `call.flushInitialMetadata` in server streaming calls in a handler, it is guaranteed that all middlewares "opening blocks" (before awaiting `next`) were called, but not necessarily the "closing blocks". Meaning if you set metadata in middleware after awaiting `next` and flush metadata in handler for server streaming calls without delaying execution, they will be probably send before the middleware sets them.
 
 :::
 
-If an error occurs and the handler fails, existing metadata are send and received as if the call succeeded.
+If an error occurs and the handler fails, existing metadata are sent and received as if the call succeeded.
 
 ## Trailing metadata
 
@@ -48,7 +48,7 @@ Available via `call.trailingMetadata`.
 
 If an error occurs, the trailing metadata are automatically sent to client with the status code.
 
-Initial and trailing metadata make more conceptual sense in streaming calls. Two types seem redundant only in unary calls, where typically both are send and received "at the same time".
+Initial and trailing metadata make more conceptual sense in streaming calls. Two types seem redundant only in unary calls, where typically both are sent and received "at the same time".
 
 :::note
 
