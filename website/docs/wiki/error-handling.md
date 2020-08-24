@@ -52,7 +52,7 @@ app.use(
 )
 ```
 
-- The handler is called with error and current call for all errors (rejects from handlers, error emits from streams), meaning there can be theoretically more errors per request (multiple emitted errors) and some of them can be handled even after the executon of the next chain (error emits).
+- The handler is called with error and current call for all errors (rejects from handlers, error emits from streams), meaning there can be theoretically more errors per request (multiple emitted errors) and some of them can be handled even after the execution of the next chain (error emits).
 - Provided function can be sync on async. It can throw (or return rejected promise), but any other return value is ignored
 - Both initial and trailing metadata are available for change (unless you sent them manually)
 - In order to achieve "re-throwing", `emit` function on call is patched by `onError`. When calling `call.emit('error', e)`, the error is actually emitted in the stream only when the handler throws a new error. This means that when you emit an error in the middleware and consume it in the handler, streams are left "hanging", not errored and likely not even ended. If you truly wish to not propagate the error to client, it is recommended to end the streams in the handler. (This is not performed automatically, since there is no guarantee there should be no more than one error)

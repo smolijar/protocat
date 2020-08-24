@@ -21,13 +21,13 @@ app.addService(CatService, {
 
 :::important
 
-Note that grpc does not provide API to intercept all incoming requests, only to provide handlers to specific RPCs. That is why even global ProtoCat's middlewares do not handle requests that request unimplemented gRPC service for example.
+Note that grpc does not provide API to intercept all incoming requests, it only provides handlers to specific RPCs. That is why even global ProtoCat's middlewares do not handle requests that request unimplemented gRPC service for example.
 
 :::
 
 ## `next` function
 
-Here is an example of a simple logger middleware. Apart from `call` each middleware (handler alike) receives a `next` function. This is callstack of all subsequent middlewares and handlers. This feature is demonstrated in a simple logger middleware bellow.
+Here is an example of a simple logger middleware. Apart from `call`, each middleware (handler alike) receives a `next` function. This is callstack of all subsequent middlewares and handlers. This feature is demonstrated in a simple logger middleware bellow.
 
 ```typescript
 app.use(async (call, next) => {
@@ -48,13 +48,13 @@ app.use(async (call, next) => {
 
 :::caution
 
-Unless you want to stop execution of the subsequent middlewares, you must call next. Not awaiting (or returning) it will probably result in unexpected behavior, especially in calls without server-streaming.
+Unless you want to stop execution of the subsequent middlewares, you must call `next`. Not awaiting (or returning) it will probably result in unexpected behavior, especially in calls without server-streaming.
 
 :::
 
 ## Call cascading
 
-All middlewares are executed in order they were registered, followed by an execution of handlers is provided order, regardless of middleware-service order. Not that in the following example, `C` middleware is registered after `CatService` and it is still called, even before the handlers.
+All middlewares are executed in order they were registered, followed by an execution of handlers in provided order, regardless of middleware-service order. Note that in the following example, `C` middleware is registered after `CatService` and it is still called, even before the handlers.
 
 ```typescript
 app.use(async (call, next) => {
