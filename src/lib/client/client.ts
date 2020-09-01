@@ -2,21 +2,6 @@ import * as grpc from '@grpc/grpc-js'
 import { stubToType, CallType } from '../call-types'
 import { TypedOnData } from '../misc/type-helpers'
 
-export const metadataInterceptor = (
-  fn: (metadata: grpc.Metadata) => any
-): grpc.Interceptor => (options, nextCall) => {
-  return new grpc.InterceptingCall(nextCall(options), {
-    start: async (metadata, _listener, next) => {
-      await fn(metadata)
-      next(metadata, {
-        onReceiveMessage: (msg, next) => next(msg),
-        onReceiveMetadata: (meta, next) => next(meta),
-        onReceiveStatus: (st, next) => next(st),
-      })
-    },
-  })
-}
-
 type UnaryRequestSetup<Req> = (
   req: Req,
   metadata: grpc.Metadata,

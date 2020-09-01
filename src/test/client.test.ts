@@ -1,4 +1,4 @@
-import { createClient, metadataInterceptor } from '../lib/client/client'
+import { createClient } from '../lib/client/client'
 import {
   GreetingClient,
   GreetingService,
@@ -9,7 +9,6 @@ import {
   Metadata,
   ServerCredentials,
   handleServerStreamingCall,
-  Interceptor,
 } from '@grpc/grpc-js'
 import { Hello } from '../../dist/test/api/v1/hello_pb'
 import { bindAsync, tryShutdown } from '../lib/misc/grpc-helpers'
@@ -17,6 +16,7 @@ import {
   handleClientStreamingCall,
   handleBidiStreamingCall,
 } from '@grpc/grpc-js/build/src/server-call'
+import { metadataInterceptor } from '../lib/client/interceptors/metadata-interceptor'
 
 const createMeta = (x: Record<string, string>) => {
   const meta = new Metadata()
@@ -86,8 +86,15 @@ describe('Client', () => {
     server.start()
   })
   afterAll(() => tryShutdown(server))
-  const singleClient = createClient(GreetingClient, ADDR, undefined, { interceptors: [metadataInterceptor(meta => { meta.set('foo', 'bar') })] as any })
-  const nestedClient = createClient({ foo: GreetingClient }, ADDR, undefined, { interceptors: [metadataInterceptor(meta => { meta.set('foo', 'bar') })] as any })
+  const interceptor = metadataInterceptor((meta, opts) => {
+    meta.set('path', opts.method_definition.path)
+  })
+  const singleClient = createClient(GreetingClient, ADDR, undefined, {
+    interceptors: [interceptor],
+  } as any) // TODO: force cast https://github.com/grpc/grpc-node/issues/1558
+  const nestedClient = createClient({ foo: GreetingClient }, ADDR, undefined, {
+    interceptors: [interceptor],
+  } as any)
   for (const [label, client] of [
     ['Single', singleClient],
     ['Multi', nestedClient.foo],
@@ -140,8 +147,20 @@ describe('Client', () => {
     })
   }
   describe('Metadata interceptor', () => {
-    test('', () => {
-      console.log(spyClientMeta.mock.calls.map(params => params[0]))
+    test('Interceptor sent path for each call', () => {
+      expect(spyClientMeta.mock.calls.map(params => params[0].getMap().path))
+        .toMatchInlineSnapshot(`
+        Array [
+          "/cats.v1.Greeting/Unary",
+          "/cats.v1.Greeting/ServerStream",
+          "/cats.v1.Greeting/ClientStream",
+          "/cats.v1.Greeting/Bidi",
+          "/cats.v1.Greeting/Unary",
+          "/cats.v1.Greeting/ServerStream",
+          "/cats.v1.Greeting/ClientStream",
+          "/cats.v1.Greeting/Bidi",
+        ]
+      `)
     })
   })
 })
