@@ -164,8 +164,8 @@ export const createClient = <
 ): D extends new (...args: any[]) => infer C
   ? UpdatedClient_<C>
   : {
-      [K in keyof D]: D[K] extends new (...args: any[]) => infer C
-        ? UpdatedClient_<C>
+      [K in keyof D]: D[K] extends new (...args: any[]) => infer C_
+        ? UpdatedClient_<C_>
         : never
     } => {
   if ('prototype' in clientDef) {
