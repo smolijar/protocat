@@ -93,8 +93,8 @@ describe('Client', () => {
   })
   const alInt = accessLogInterceptor(async (ctx, next) => {
     spyInterceptors(`${ctx.options.method_definition.path} -->`)
-    await next()
-    spyInterceptors(`${ctx.options.method_definition.path} <--`)
+    const st = await next()
+    spyInterceptors(`${ctx.options.method_definition.path} <-- (${st.details})`)
   })
   const singleClient = createClient(
     GreetingClient,
@@ -164,28 +164,28 @@ describe('Client', () => {
         .toMatchInlineSnapshot(`
         "/cats.v1.Greeting/Unary -->
         /cats.v1.Greeting/Unary
-        /cats.v1.Greeting/Unary <--
+        /cats.v1.Greeting/Unary <-- (OK)
         /cats.v1.Greeting/ServerStream -->
         /cats.v1.Greeting/ServerStream
-        /cats.v1.Greeting/ServerStream <--
+        /cats.v1.Greeting/ServerStream <-- (OK)
         /cats.v1.Greeting/ClientStream -->
         /cats.v1.Greeting/ClientStream
-        /cats.v1.Greeting/ClientStream <--
+        /cats.v1.Greeting/ClientStream <-- (OK)
         /cats.v1.Greeting/Bidi -->
         /cats.v1.Greeting/Bidi
-        /cats.v1.Greeting/Bidi <--
+        /cats.v1.Greeting/Bidi <-- (OK)
         /cats.v1.Greeting/Unary -->
         /cats.v1.Greeting/Unary
-        /cats.v1.Greeting/Unary <--
+        /cats.v1.Greeting/Unary <-- (OK)
         /cats.v1.Greeting/ServerStream -->
         /cats.v1.Greeting/ServerStream
-        /cats.v1.Greeting/ServerStream <--
+        /cats.v1.Greeting/ServerStream <-- (OK)
         /cats.v1.Greeting/ClientStream -->
         /cats.v1.Greeting/ClientStream
-        /cats.v1.Greeting/ClientStream <--
+        /cats.v1.Greeting/ClientStream <-- (OK)
         /cats.v1.Greeting/Bidi -->
         /cats.v1.Greeting/Bidi
-        /cats.v1.Greeting/Bidi <--"
+        /cats.v1.Greeting/Bidi <-- (OK)"
       `)
     })
   })

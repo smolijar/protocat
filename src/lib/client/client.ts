@@ -41,6 +41,7 @@ type UnaryCall<Req, Res> = (
   metadata: grpc.Metadata
   status: grpc.StatusObject
 }>
+type UpdatedClient_<C> = C extends grpc.Client ? UpdatedClient<C> : never
 type UpdatedClient<C extends grpc.Client> = {
   [K in keyof C]: C[K] extends (
     request: infer Req,
@@ -161,14 +162,10 @@ export const createClient = <
   creds?: grpc.ChannelCredentials,
   options?: Partial<grpc.ClientOptions>
 ): D extends new (...args: any[]) => infer C
-  ? C extends grpc.Client
-    ? UpdatedClient<C>
-    : never
+  ? UpdatedClient_<C>
   : {
       [K in keyof D]: D[K] extends new (...args: any[]) => infer C
-        ? C extends grpc.Client
-          ? UpdatedClient<C>
-          : never
+        ? UpdatedClient_<C>
         : never
     } => {
   if ('prototype' in clientDef) {
