@@ -8,9 +8,18 @@ type KnownKeys<T> = {
   ? U
   : never
 
+// List keys with never value
+type NeverKeys<T> = {
+  [K in keyof T]: T[K] extends never ? never : K
+} extends { [_ in keyof T]: infer U }
+  ? U
+  : never
+
 // Remove index signature keys from object
 // RemoveIdxSgn<{ [index: string]: string; foo: string }> = { foo: string }
 export type RemoveIdxSgn<T> = Pick<T, KnownKeys<T>>
+// Omit never value keys from object
+export type OmitNeverKeys<T> = Pick<T, NeverKeys<T>>
 
 export type TypedOnData<E extends EventEmitter, T> = Omit<E, 'on'> & {
   on(event: 'close', listener: () => void): E

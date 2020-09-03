@@ -1,6 +1,6 @@
 import * as grpc from '@grpc/grpc-js'
 import { stubToType, CallType } from '../call-types'
-import { TypedOnData } from '../misc/type-helpers'
+import { TypedOnData, OmitNeverKeys } from '../misc/type-helpers'
 
 type UnaryRequestSetup<Req> = (
   req: Req,
@@ -42,33 +42,41 @@ type UnaryCall<Req, Res> = (
   status: grpc.StatusObject
 }>
 type UpdatedClient_<C> = C extends grpc.Client ? UpdatedClient<C> : never
-type UpdatedClient<C extends grpc.Client> = {
-  [K in keyof C]: C[K] extends (
-    request: infer Req,
-    metadata?: grpc.Metadata,
-    options?: Partial<grpc.CallOptions>
-  ) => grpc.ClientReadableStream<infer Res>
-    ? ServerStreamCall<Req, Res>
-    : C[K] extends (
-        metadata: grpc.Metadata,
-        options?: Partial<grpc.CallOptions>
-      ) => grpc.ClientDuplexStream<infer Req, infer Res>
-    ? BidiCall<Req, Res>
-    : C[K] extends (
-        request: infer Req,
-        metadata: grpc.Metadata,
-        options: Partial<grpc.CallOptions>,
-        callback: (error: grpc.ServiceError | null, response: infer Res) => void
-      ) => grpc.ClientUnaryCall
-    ? UnaryCall<Req, Res>
-    : C[K] extends (
-        metadata: grpc.Metadata,
-        options: Partial<grpc.CallOptions>,
-        callback: (error: grpc.ServiceError | null, response: infer Res) => void
-      ) => grpc.ClientWritableStream<infer Req>
-    ? ClientStreamCall<Req, Res>
-    : never
-}
+type UpdatedClient<C extends grpc.Client> = OmitNeverKeys<
+  {
+    [K in keyof C]: C[K] extends (
+      request: infer Req,
+      metadata?: grpc.Metadata,
+      options?: Partial<grpc.CallOptions>
+    ) => grpc.ClientReadableStream<infer Res>
+      ? ServerStreamCall<Req, Res>
+      : C[K] extends (
+          metadata: grpc.Metadata,
+          options?: Partial<grpc.CallOptions>
+        ) => grpc.ClientDuplexStream<infer Req, infer Res>
+      ? BidiCall<Req, Res>
+      : C[K] extends (
+          request: infer Req,
+          metadata: grpc.Metadata,
+          options: Partial<grpc.CallOptions>,
+          callback: (
+            error: grpc.ServiceError | null,
+            response: infer Res
+          ) => void
+        ) => grpc.ClientUnaryCall
+      ? UnaryCall<Req, Res>
+      : C[K] extends (
+          metadata: grpc.Metadata,
+          options: Partial<grpc.CallOptions>,
+          callback: (
+            error: grpc.ServiceError | null,
+            response: infer Res
+          ) => void
+        ) => grpc.ClientWritableStream<infer Req>
+      ? ClientStreamCall<Req, Res>
+      : never
+  }
+>
 
 const updateClientInstance = <C extends grpc.Client>(
   grpcClient: C
