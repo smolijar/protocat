@@ -7,6 +7,11 @@ module.exports = {
       'wiki/starting-server',
       'wiki/basic-middleware',
     ],
-    Features: ['wiki/middlewares', 'wiki/metadata', 'wiki/error-handling'],
+    Features: [
+      'wiki/middlewares',
+      'wiki/metadata',
+      'wiki/error-handling',
+      'wiki/client',
+    ],
   },
 }
