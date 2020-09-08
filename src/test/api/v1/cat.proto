@@ -26,11 +26,12 @@ message ShareLocationResponse {
 
 service Cat {
     // Get cat by name
-    rpc GetCat (GetCatRequest) returns (cats.Cat) {};
+    rpc GetCat (GetCatRequest) returns (cats.Cat);
     // Watch new cats
-    rpc WatchCats (WatchCatsRequest) returns (stream cats.Cat) {};
+    rpc WatchCats (WatchCatsRequest) returns (stream cats.Cat);
+    // Stream my (being a cat) current location, to see how much I travelled
+    rpc ShareLocation (stream ShareLocationRequest)
+        returns (ShareLocationResponse);
     // Send food, receive incoming consumers
-    rpc ShareLocation (stream ShareLocationRequest) returns (ShareLocationResponse) {};
-    // Send food, receive incoming consumers
-    rpc FeedCats (stream FeedCatsRequest) returns (stream cats.Cat) {};
+    rpc FeedCats (stream FeedCatsRequest) returns (stream cats.Cat);
 }
