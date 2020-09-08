@@ -1,7 +1,7 @@
 {
   "name": "protocat",
   "description": "Modern, minimalist type-safe gRPC framework for Node.js",
-  "version": "0.4.0-beta.1",
+  "version": "0.4.0",
   "author": "Jaroslav Šmolík <grissius@gmail.com>",
   "main": "./dist/index.js",
   "files": [
