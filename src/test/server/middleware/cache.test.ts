@@ -14,6 +14,7 @@ import { createClient } from '../../../lib/client/client'
 
 const inf = <R>() => <T extends R>(_: T) => _
 const uniq = <T>(xs: T[]) => Array.from(new Set(xs))
+type UnwrapP<T> = T extends Promise<infer _> ? _ : T
 
 const ADDR = '0.0.0.0:3000'
 let c: Record<string, Buffer> = {}
@@ -76,9 +77,9 @@ describe('Cache middleware', () => {
     })
     test('Repeated requests (invocation tests)', async () => {
       const requests = 'meeeeeoooweee!'.split('')
-      const results = await Promise.all(
-        requests.map(request => client.unary(req => req.setName(request)))
-      )
+      const results = await requests.reduce(async (acc, val) => {
+        return [...(await acc), await client.unary(req => req.setName(val))]
+      }, Promise.resolve([] as Array<UnwrapP<ReturnType<typeof client.unary>>>))
       // Hash called for each request
       expect(cache.hash).toBeCalledTimes(requests.length)
       // Cache got for each request
