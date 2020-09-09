@@ -4,14 +4,13 @@ import {
   GreetingClient,
   IGreetingService,
 } from '../../../../dist/test/api/v1/hello_grpc_pb'
-import { ChannelCredentials } from '@grpc/grpc-js'
-import { Hello } from '../../../../dist/test/api/v1/hello_pb'
 import {
   createCache,
   CacheImplementation,
 } from '../../../lib/server/middleware/cache'
 import { performance } from 'perf_hooks'
 import { ServiceImplementation } from '../../../lib/server/call'
+import { createClient } from '../../../lib/client/client'
 
 const inf = <R>() => <T extends R>(_: T) => _
 const uniq = <T>(xs: T[]) => Array.from(new Set(xs))
@@ -38,11 +37,16 @@ describe('Cache middleware', () => {
       unary,
       ...({} as any), // we skip def on non-unary
     })
-    app.use(createCache(cache))
+    app.use(
+      createCache(cache, (call, hit, hash) => {
+        call.initialMetadata.set('cache', hit ? 'hit' : 'miss')
+        call.initialMetadata.set('cache-key', hash)
+      })
+    )
     await app.start(ADDR)
   })
   describe('Caching', () => {
-    const client = new GreetingClient(ADDR, ChannelCredentials.createInsecure())
+    const client = createClient(GreetingClient, ADDR)
     beforeEach(() => {
       cache.set.mockClear()
       cache.get.mockClear()
@@ -52,11 +56,9 @@ describe('Cache middleware', () => {
     })
     test('Cache miss, cache hit (invocation tests)', async () => {
       const call = () =>
-        new Promise<Hello>((resolve, reject) => {
-          client.unary(new Hello().setName('Whiskers'), (err, res) =>
-            err ? reject(err) : resolve(res)
-          )
-        })
+        client
+          .unary(req => req.setName('Whiskers'))
+          .then(({ response }) => response)
       const res1 = await call()
 
       expect(cache.hash).toBeCalledTimes(1)
@@ -74,15 +76,8 @@ describe('Cache middleware', () => {
     })
     test('Repeated requests (invocation tests)', async () => {
       const requests = 'meeeeeoooweee!'.split('')
-      await Promise.all(
-        requests.map(
-          x =>
-            new Promise<Hello>((resolve, reject) => {
-              client.unary(new Hello().setName(x), (err, res) =>
-                err ? reject(err) : resolve(res)
-              )
-            })
-        )
+      const results = await Promise.all(
+        requests.map(request => client.unary(req => req.setName(request)))
       )
       // Hash called for each request
       expect(cache.hash).toBeCalledTimes(requests.length)
@@ -96,6 +91,18 @@ describe('Cache middleware', () => {
       expect(unary.mock.calls.map(([call]) => call.request.getName())).toEqual(
         uniq(requests)
       )
+
+      // Correct responses and hit/mis via callback metadata
+      const seen: Record<string, string> = {}
+      results.forEach(({ metadata, response }, i) => {
+        if (seen[requests[i]]) {
+          expect(metadata.getMap().cache).toBe('hit')
+          expect(response.getName()).toBe(seen[requests[i]])
+        } else {
+          expect(metadata.getMap().cache).toBe('miss')
+        }
+        seen[requests[i]] = response.getName()
+      })
     })
   })
 })

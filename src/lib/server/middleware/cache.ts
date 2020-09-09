@@ -11,7 +11,12 @@ export interface CacheImplementation<E = {}> {
 }
 
 export const createCache = <E = {}>(
-  cache: CacheImplementation<E>
+  cache: CacheImplementation<E>,
+  cb?: (
+    call: ProtoCatCall<E, Message, Message, CallType.Unary>,
+    hit: boolean,
+    hash: string
+  ) => any
 ): Middleware<E> => async (call, next) => {
   if (call.type !== CallType.Unary) return next()
   const key = await cache.hash(call)
@@ -19,13 +24,13 @@ export const createCache = <E = {}>(
   let cached = await cache.get(key)
   if (!cached) {
     // cache miss
-    // TODO callback?
+    await cb?.(call, false, key)
     await next()
     cached = call.responseSerialize(call.response)
     cache.set(key, cached)
   } else {
     // cache hit
-    // TODO callback?
+    await cb?.(call, true, key)
   }
   call.bufferedResponse = cached
 }
