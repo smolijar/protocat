@@ -2,6 +2,7 @@ import * as grpc from '@grpc/grpc-js'
 import { RemoveIdxSgn, TypedOnData } from '../misc/type-helpers'
 import { CallType } from '../call-types'
 import { Message } from 'google-protobuf'
+import { Serialize } from '@grpc/grpc-js/build/src/make-client'
 
 /**
  * Extended gRPC call
@@ -36,6 +37,9 @@ export type ProtoCatCall<
   request?: Req
   /** Response message: only unary and client-stream */
   response?: Res
+  /** Response message: only unary and client-stream */
+  readonly responseSerialize: Serialize<Res>
+  bufferedResponse?: Buffer
 } & Extension &
   (Type extends CallType.Unary
     ? grpc.ServerUnaryCall<Req, Res> & {
