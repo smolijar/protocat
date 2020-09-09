@@ -7,7 +7,11 @@ export interface CacheImplementation<E = {}> {
     call: ProtoCatCall<E, Message, Message, CallType.Unary>
   ) => Promise<string> | string
   get: (key: string) => Promise<Buffer | undefined> | Buffer | undefined
-  set: (key: string, value: Buffer) => void
+  set: (
+    key: string,
+    value: Buffer,
+    call: ProtoCatCall<E, Message, Message, CallType.Unary>
+  ) => void
 }
 
 export const createCache = <E = {}>(
@@ -27,7 +31,7 @@ export const createCache = <E = {}>(
     await cb?.(call, false, key)
     await next()
     cached = call.responseSerialize(call.response)
-    cache.set(key, cached)
+    cache.set(key, cached, call)
   } else {
     // cache hit
     await cb?.(call, true, key)
