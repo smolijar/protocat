@@ -6,7 +6,10 @@ export interface CacheImplementation<E = {}> {
   hash: (
     call: ProtoCatCall<E, Message, Message, CallType.Unary>
   ) => Promise<string | undefined> | string | undefined
-  get: (key: string) => Promise<Buffer | undefined> | Buffer | undefined
+  get: (
+    key: string,
+    call: ProtoCatCall<E, Message, Message, CallType.Unary>
+  ) => Promise<Buffer | undefined> | Buffer | undefined
   set: (
     key: string,
     value: Buffer,
@@ -25,7 +28,7 @@ export const createCache = <E = {}>(
   if (call.type !== CallType.Unary) return next()
   const key = await cache.hash(call)
   if (!key) return next()
-  let cached = await cache.get(key)
+  let cached = await cache.get(key, call)
   if (!cached) {
     // cache miss
     await cb?.(call, false, key)
