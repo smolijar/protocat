@@ -67,7 +67,8 @@ export class ProtoCat<Extension = {}> {
       this.server.register(
         methodDefinition.path,
         wrappedHandler,
-        methodDefinition.responseSerialize,
+        msg =>
+          msg instanceof Buffer ? msg : methodDefinition.responseSerialize(msg),
         methodDefinition.requestDeserialize,
         type
       )
@@ -122,6 +123,7 @@ const wrapToHandler = (
       path: methodDefinition.path,
       ...path2Fragments(methodDefinition.path),
       flushInitialMetadata: () => call.sendMetadata(initialMetadata),
+      responseSerialize: methodDefinition.responseSerialize,
       type,
     })
   }
@@ -137,7 +139,7 @@ const wrapToHandler = (
       await methodHandler(call)
       call.flushInitialMetadata()
       if (cb) {
-        cb(null, call.response, call.trailingMetadata)
+        cb(null, call.bufferedResponse ?? call.response, call.trailingMetadata)
       }
     } catch (e) {
       call.flushInitialMetadata()
