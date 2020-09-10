@@ -5,7 +5,7 @@ import { Message } from 'google-protobuf'
 export interface CacheImplementation<E = {}> {
   hash: (
     call: ProtoCatCall<E, Message, Message, CallType.Unary>
-  ) => Promise<string> | string
+  ) => Promise<string | undefined> | string | undefined
   get: (key: string) => Promise<Buffer | undefined> | Buffer | undefined
   set: (
     key: string,
