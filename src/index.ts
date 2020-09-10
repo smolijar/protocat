@@ -1,6 +1,7 @@
 export { ProtoCat } from './lib/server/application'
 export { CallType } from './lib/call-types'
 export { onError } from './lib/server/middleware/on-error'
+export { CacheImplementation, createCache } from './lib/server/middleware/cache'
 export { Middleware, ServiceImplementation } from './lib/server/call'
 
 export { createClient } from './lib/client/client'
