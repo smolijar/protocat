@@ -3,13 +3,20 @@ import { CallType } from '../../call-types'
 import { Message } from 'google-protobuf'
 
 export interface CacheImplementation<E = {}> {
+  /**
+   * Create a unique cache key that will be used for response save and lookup.
+   *
+   * Return falsy key if caching should be skipped
+   */
   hash: (
     call: ProtoCatCall<E, Message, Message, CallType.Unary>
   ) => Promise<string | undefined> | string | undefined
+  /** Return buffer from cache. Returning falsy value is considered a cache miss. */
   get: (
     key: string,
     call: ProtoCatCall<E, Message, Message, CallType.Unary>
   ) => Promise<Buffer | undefined> | Buffer | undefined
+  /** Set cache result. Result is not awaited and does not block the response nor subsequent requests */
   set: (
     key: string,
     value: Buffer,
@@ -18,7 +25,9 @@ export interface CacheImplementation<E = {}> {
 }
 
 export const createCache = <E = {}>(
+  /** Response binary cache implementation */
   cache: CacheImplementation<E>,
+  /** Optional callback to react on cache miss/hit. Called once per request ASAP after cache retrieval */
   cb?: (
     call: ProtoCatCall<E, Message, Message, CallType.Unary>,
     hit: boolean,
