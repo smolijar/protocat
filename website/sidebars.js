@@ -11,6 +11,7 @@ module.exports = {
       'wiki/middlewares',
       'wiki/metadata',
       'wiki/error-handling',
+      'wiki/caching',
       'wiki/client',
     ],
   },
