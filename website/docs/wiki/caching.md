@@ -26,7 +26,7 @@ app.use(async (call, next) => {
 
 This simple middleware is a good start: we effectively skip the handlers, can manage TTL and can combine with any custom logic for the matching. For example we can hook the cache middleware after authentication middleware and create per-user cache with prepared data about user from the call.
 
-Assume we have non-in memory cache and we need to serialize the instances into some form and back. That is why there's `cachedToProto` and `protoToCached` functions. This is the troublesome part: doing this serialization generically might be challenging (and could be potentially solvable only via custom solution for each RPC/message) and it might not be "cheap" (cache hits should be blistering fast and not perform double encoding `cache-to-proto` by you and `proto-to-wire` by gRPC).
+Assume we have other than in-memory cache and we need to serialize the instances into some form and back. That is why there are `cachedToProto` and `protoToCached` functions. This is the troublesome part: doing this serialization generically might be challenging (and could be potentially solvable only via custom solution for each RPC/message) and it might not be "cheap" (cache hits should be blistering fast and not perform double encoding `cache-to-proto` by you and `proto-to-wire` by gRPC).
 
 That's why ProtoCat has a mechanism to remove both of the problems: generic approach for all RPCs without mapping functions and avoid double encoding.
 
@@ -73,7 +73,7 @@ It is all up to you. If you want different TTL for different calls, set the TTL 
 
 ProtoCat uses the "lowest" available public API of `grpc-js` to hook handlers, that is `server.register`. This allows it to override serialization methods. This way the standard protobuf message to wire function can be overriden to do _noop_ if ProtoCat tells it buffer caching has been used and it skips the default transformation of message to binary.
 
-This is also the reason how we solved the generic method. Now that the wire format can be used directly, it is used as a serialization. That is why it is so crucial to respect the buffer contract and not to tamper with the data in any way. Under normal cricumstances, sending an unserielizable input down gRPC would cause an error on the server, during the encoding. With caching middleware this runtime checks are skipped.
+This is also the reasoning behind how we implemented the generic method. Now that the wire format can be used directly, it is also used as a serialization format that goes to cache storage. That is why it is so crucial to respect the buffer contract and not to tamper with the data in any way. Under normal cricumstances, sending an unserielizable input down gRPC would cause an error on the server, during the encoding. With caching middleware these runtime checks are skipped.
 
 The middleware creator should satisfy your needs, but if you would like to use this mechanism without the middleware helper, it uses public API of the ProtoCat's call context. See the [implementation](https://github.com/grissius/protocat/pull/21) for details.
 
