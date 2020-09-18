@@ -39,7 +39,11 @@ app.start('0.0.0.0:3000')
 
 ## Docs
 
-Learn more about ProtoCat in [docs](https://grissius.github.io/protocat/).
+~~Learn more about ProtoCat in [docs](https://grissius.github.io/protocat/).~~
+
+**🚧 Current docs are under maintenance**
+
+**Until fixed, please see temporary deploy at [infallible-noether-964b1e.netlify.app](https://infallible-noether-964b1e.netlify.app/)**
 
 ## Support
 
