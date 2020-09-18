@@ -102,11 +102,11 @@ describe('Client', () => {
     ChannelCredentials.createInsecure(),
     {
       interceptors: [metadataInt, alInt],
-    } as any
-  ) // TODO: force cast https://github.com/grpc/grpc-node/issues/1558
+    }
+  )
   const nestedClient = createClient({ foo: GreetingClient }, ADDR, undefined, {
     interceptors: [metadataInt, alInt],
-  } as any)
+  })
   for (const [label, client] of [
     ['Single', singleClient],
     ['Multi', nestedClient.foo],
