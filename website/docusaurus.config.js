@@ -1,7 +1,7 @@
 module.exports = {
   title: 'ProtoCat',
   tagline: 'Modern, minimalist type-safe gRPC framework for Node.js',
-  url: 'http://proto.cat',
+  url: 'https://proto.cat',
   baseUrl: '/',
   onBrokenLinks: 'throw',
   favicon: 'img/favicon.ico',
