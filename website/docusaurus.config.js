@@ -1,8 +1,8 @@
 module.exports = {
   title: 'ProtoCat',
   tagline: 'Modern, minimalist type-safe gRPC framework for Node.js',
-  url: 'https://grissius.github.io/protocat/',
-  baseUrl: '/protocat/',
+  url: 'http://proto.cat',
+  baseUrl: '/',
   onBrokenLinks: 'throw',
   favicon: 'img/favicon.ico',
   organizationName: 'grissius',

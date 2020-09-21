@@ -1,6 +1,6 @@
 <div align="center">
 
-[![](https://raw.githubusercontent.com/grissius/protocat/master/website/static/img/logo.svg)](https://grissius.github.io/protocat/)
+[![](https://raw.githubusercontent.com/grissius/protocat/master/website/static/img/logo.svg)](http://proto.cat)
 
 # ProtoCat
 
@@ -13,7 +13,7 @@ Modern, minimalist type-safe gRPC framework for Node.js
 [![](https://flat.badgen.net/github/license/grissius/protocat)](https://github.com/grissius/protocat/blob/master/LICENSE)
 [![](https://flat.badgen.net/david/dep/grissius/protocat)](https://david-dm.org/grissius/protocat)
 [![](https://flat.badgen.net/snyk/grissius/protocat)](https://snyk.io/vuln/npm:protocat)
-[![](https://flat.badgen.net/badge/%F0%9F%93%91%20docs/pages/cyan)](https://grissius.github.io/protocat/)
+[![](https://flat.badgen.net/badge/%F0%9F%93%91%20docs/pages/cyan)](http://proto.cat)
 
 </div>
 
@@ -39,11 +39,7 @@ app.start('0.0.0.0:3000')
 
 ## Docs
 
-~~Learn more about ProtoCat in [docs](https://grissius.github.io/protocat/).~~
-
-**🚧 Current docs are under maintenance**
-
-**Until fixed, please see temporary deploy at [infallible-noether-964b1e.netlify.app](https://infallible-noether-964b1e.netlify.app/)**
+Learn more about ProtoCat in [docs](http://proto.cat/).
 
 ## Support
 
