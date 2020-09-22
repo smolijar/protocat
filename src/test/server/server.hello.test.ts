@@ -2,6 +2,7 @@ import { ProtoCat } from '../..'
 import {
   GreetingService,
   GreetingClient,
+  IGreetingService,
 } from '../../../dist/test/api/v1/hello_grpc_pb'
 import {
   ServerCredentials,
@@ -14,9 +15,9 @@ import { performance } from 'perf_hooks'
 
 const ADDR = '0.0.0.0:3000'
 describe('HelloService (boring, predictable and exhaustive)', () => {
-  let app: ProtoCat
+  let app: ProtoCat<{ GreetingService: IGreetingService }>
   test('createServer', () => {
-    app = new ProtoCat()
+    app = new ProtoCat({ GreetingService })
   })
   test('use', () => {
     app.use(async (call, next) => {
@@ -28,7 +29,7 @@ describe('HelloService (boring, predictable and exhaustive)', () => {
     })
   })
   test('addService', () => {
-    app.addService(GreetingService, {
+    app.addService('GreetingService', {
       unary: [
         (call, next) => {
           call.initialMetadata.set('type', 'initialUnary')

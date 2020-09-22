@@ -13,11 +13,11 @@ import { Hello } from '../../../../dist/test/api/v1/hello_pb'
 
 const ADDR = '0.0.0.0:3000'
 describe('Error handling', () => {
-  const app = new ProtoCat()
+  const app = new ProtoCat({ GreetingService })
   let lastError: any = null
   afterAll(() => app.stop())
   test('Setup', async () => {
-    app.addService(GreetingService, {
+    app.addService('GreetingService', {
       unary: call => {
         throw new Error('unary-error')
       },

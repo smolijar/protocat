@@ -1,6 +1,10 @@
 import * as grpc from '@grpc/grpc-js'
 import { ChannelOptions } from '@grpc/grpc-js/build/src/channel-options'
-import { Middleware, ServiceImplementationExtended } from './call'
+import {
+  Middleware,
+  ServiceImplementation,
+  ServiceImplementationExtended,
+} from './call'
 import { stubToType } from '../call-types'
 import { bindAsync, tryShutdown, path2Fragments } from '../misc/grpc-helpers'
 import { composeMiddleware } from './middleware/compose-middleware'
@@ -8,7 +12,13 @@ import { composeMiddleware } from './middleware/compose-middleware'
 /**
  * The main ProtoCat server application class
  */
-export class ProtoCat<Extension = {}> {
+export class ProtoCat<
+  Services extends Record<
+    string,
+    grpc.ServiceDefinition<grpc.UntypedServiceImplementation>
+  >,
+  Extension = {}
+> {
   /** Underlying gRPC server */
   public server: grpc.Server
   /** Map of loaded generated method stubs */
@@ -17,7 +27,11 @@ export class ProtoCat<Extension = {}> {
   private serviceHandlers: Record<string, Middleware[]>
   /** Global middleware functions */
   private readonly middleware: Array<Middleware<Extension>>
-  constructor(options?: ChannelOptions) {
+  constructor(
+    private readonly services: Services,
+    private readonly createCallExtension?: (call: any) => Extension,
+    options?: ChannelOptions
+  ) {
     this.server = new grpc.Server(options)
     this.methodDefinitions = {}
     this.middleware = []
@@ -34,12 +48,11 @@ export class ProtoCat<Extension = {}> {
   /**
    * Add service stub and its definition
    */
-  public addService<
-    T extends grpc.ServiceDefinition<grpc.UntypedServiceImplementation>
-  >(
-    serviceDefinition: T,
-    serviceImplementation: ServiceImplementationExtended<T, Extension>
+  public addService<K extends keyof Services>(
+    serviceKey: K,
+    serviceImplementation: ServiceImplementationExtended<Services[K], Extension>
   ) {
+    const serviceDefinition = this.services[serviceKey]
     for (const methodName in serviceDefinition) {
       // Path is FQN with namespace to avoid collisions
       const key = serviceDefinition[methodName].path
@@ -61,7 +74,8 @@ export class ProtoCat<Extension = {}> {
       const methodHandlers: any[] = this.serviceHandlers[methodName] // HandlerCS<any, any>[] | HandlerU<any, any>[] | HandlerBS<any, any>[] | HandlerSS<any, any>[]
       const wrappedHandler = wrapToHandler(
         methodDefinition,
-        composeMiddleware([...this.middleware, ...methodHandlers])
+        composeMiddleware([...this.middleware, ...methodHandlers]),
+        this.createCallExtension
       )
       const type = stubToType(methodDefinition)
       this.server.register(
@@ -104,7 +118,8 @@ export class ProtoCat<Extension = {}> {
  */
 const wrapToHandler = (
   methodDefinition: grpc.MethodDefinition<any, any>,
-  methodHandler: any
+  methodHandler: any,
+  createCallExtension?: any
 ) => {
   const type = stubToType(methodDefinition)
   const createContext = (
@@ -116,7 +131,7 @@ const wrapToHandler = (
   ): any => {
     const initialMetadata = new grpc.Metadata()
     const trailingMetadata = new grpc.Metadata()
-    return Object.assign(call, {
+    call = Object.assign(call, {
       meta: call.metadata.getMap(),
       trailingMetadata,
       initialMetadata,
@@ -126,6 +141,10 @@ const wrapToHandler = (
       responseSerialize: methodDefinition.responseSerialize,
       type,
     })
+    if (createCallExtension) {
+      call = Object.assign(call, createCallExtension?.(call) ?? {})
+    }
+    return call
   }
 
   return async (
@@ -151,3 +170,13 @@ const wrapToHandler = (
     }
   }
 }
+
+export type ExtractMiddleware<
+  P extends ProtoCat<any, any>
+> = P extends ProtoCat<infer S, infer E> ? Middleware<E> : never
+export type ExtractServices<P extends ProtoCat<any, any>> = P extends ProtoCat<
+  infer S,
+  infer E
+>
+  ? { [key in keyof S]: ServiceImplementation<S[key], E> }
+  : never

@@ -31,10 +31,10 @@ const unary = inf<ServiceImplementation<IGreetingService>['unary']>()(
   })
 )
 describe('Cache middleware', () => {
-  const app = new ProtoCat()
+  const app = new ProtoCat({ GreetingService })
   afterAll(() => app.stop())
   test('Setup', async () => {
-    app.addService(GreetingService, {
+    app.addService('GreetingService', {
       unary,
       ...({} as any), // we skip def on non-unary
     })

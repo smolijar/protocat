@@ -1,15 +1,15 @@
-import { ProtoCat, Middleware, ServiceImplementation } from '../..'
-import {
-  GreetingService,
-  IGreetingService,
-} from '../../../dist/test/api/v1/hello_grpc_pb'
+import { ProtoCat } from '../..'
+import { GreetingService } from '../../../dist/test/api/v1/hello_grpc_pb'
 import { path2Fragments } from '../../lib/misc/grpc-helpers'
+import {
+  ExtractMiddleware,
+  ExtractServices,
+} from '../../lib/server/application'
 
 describe('Context extension types', () => {
-  interface MyContext {
-    uid: string
-  }
-  const app = new ProtoCat<MyContext>()
+  const app = new ProtoCat({ GreetingService }, () => ({
+    uid: '',
+  }))
 
   // Inferred middleware context
   app.use((call, next) => {
@@ -17,24 +17,23 @@ describe('Context extension types', () => {
   })
 
   // Explicit middleware context
-  const mdw: Middleware<MyContext> = (call, next) => {
+  const mdw: ExtractMiddleware<typeof app> = (call, next) => {
     call.uid = '123'
   }
   app.use(mdw)
 
-  const unaryHandler: ServiceImplementation<
-    IGreetingService,
-    MyContext
-  >['unary'] = call => call.uid
+  const unaryHandler: ExtractServices<
+    typeof app
+  >['GreetingService']['unary'] = call => call.uid
 
-  const serviceImpl: ServiceImplementation<IGreetingService, MyContext> = {
+  const serviceImpl: ExtractServices<typeof app>['GreetingService'] = {
     bidi: call => call.uid,
     clientStream: call => call.uid,
     serverStream: call => call.uid,
     unary: call => call.uid,
   }
   // Service definition inferred and explicit
-  app.addService(GreetingService, {
+  app.addService('GreetingService', {
     bidi: call => call.uid,
     unary: [unaryHandler],
     serverStream: call => call.uid,
