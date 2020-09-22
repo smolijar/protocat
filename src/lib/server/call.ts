@@ -11,7 +11,8 @@ export type ProtoCatCall<
   Extension = {},
   Req = Message,
   Res = Message,
-  Type extends CallType = CallType
+  Type extends CallType = CallType,
+  Path = string
 > = {
   /** Client metadata */
   readonly metadata: grpc.Metadata
@@ -24,7 +25,7 @@ export type ProtoCatCall<
   /** Trailing metadata (sent automatically) */
   trailingMetadata: grpc.Metadata
   /** RPC path "/[package].[service]/[method]", e.g. /cats.v1.Cat/GetCat */
-  path: string
+  path: Path
   /** Protofile package name */
   package: string
   /** Protofile service name (interface name) */
@@ -71,6 +72,40 @@ export type ProtoCatAnyCall<Extension = {}> =
   | ProtoCatCall<Extension, Message, Message, CallType.ServerStream>
   | ProtoCatCall<Extension, Message, Message, CallType.ClientStream>
   | ProtoCatCall<Extension, Message, Message, CallType.Bidi>
+
+type Keys<T> = T extends Record<any, infer X> ? X : never
+
+export type ProtoCatStrictCall<
+  Services extends Record<
+    string,
+    grpc.ServiceDefinition<grpc.UntypedServiceImplementation>
+  >,
+  Extension = {}
+> = Keys<{
+  [SK in keyof Services]: Keys<RemoveIdxSgn<{
+    [MK in keyof Services[SK]]: Services[SK][MK] extends grpc.MethodDefinition<
+      infer Req,
+      infer Res
+    >
+      ? ProtoCatCall<
+          Extension,
+          Req,
+          Res,
+          MethodDef2CallType<Services[SK][MK]>,
+          Services[SK][MK]['path']
+        >
+      : never
+  }>>
+}>
+
+export type StrictMiddleware<Services extends Record<
+string,
+grpc.ServiceDefinition<grpc.UntypedServiceImplementation>
+>,
+Extension = {}> = (
+  call: ProtoCatStrictCall<Services, Extension>,
+  next: NextFn
+) => any
 
 /**
  * Application generic middleware

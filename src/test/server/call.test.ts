@@ -1,5 +1,5 @@
 import { ProtoCat } from '../..'
-import { GreetingService } from '../../../dist/test/api/v1/hello_grpc_pb'
+import { GreetingService, IGreetingService } from '../../../dist/test/api/v1/hello_grpc_pb'
 import { path2Fragments } from '../../lib/misc/grpc-helpers'
 import {
   ExtractMiddleware,
@@ -19,6 +19,13 @@ describe('Context extension types', () => {
   // Explicit middleware context
   const mdw: ExtractMiddleware<typeof app> = (call, next) => {
     call.uid = '123'
+    if (call.path === '/cats.v1.Greeting/ClientStream') {
+      // good
+    }
+    // @ts-expect-error
+    if (call.path === '/cats.v1.zblept/ClientStream') {
+      // causes error, typo in path
+    }
   }
   app.use(mdw)
 

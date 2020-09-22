@@ -4,6 +4,7 @@ import {
   Middleware,
   ServiceImplementation,
   ServiceImplementationExtended,
+  StrictMiddleware,
 } from './call'
 import { stubToType } from '../call-types'
 import { bindAsync, tryShutdown, path2Fragments } from '../misc/grpc-helpers'
@@ -26,7 +27,7 @@ export class ProtoCat<
   /** Map of loaded method service implementations */
   private serviceHandlers: Record<string, Middleware[]>
   /** Global middleware functions */
-  private readonly middleware: Array<Middleware<Extension>>
+  private readonly middleware: Array<StrictMiddleware<Services, Extension>>
   constructor(
     private readonly services: Services,
     private readonly createCallExtension?: (call: any) => Extension,
@@ -41,13 +42,25 @@ export class ProtoCat<
   /**
    * Add a global gRPC middleware for the application
    */
-  public use(...middleware: Array<Middleware<Extension>>) {
-    this.middleware.push(...middleware)
+  public use(...middleware: Array<Middleware<Extension>>): void;
+  public use(...middleware: Array<StrictMiddleware<Services, Extension>>): void;
+  public use(...middleware: any[]): void {
+    this.middleware.push(...middleware as any)
   }
 
   /**
    * Add service stub and its definition
    */
+  public addService<K extends keyof Services>(
+    serviceKey: K,
+    serviceImplementation: ServiceImplementationExtended<Services[K], Extension>
+  ): void;
+
+  public addService<K extends keyof Services>(
+    serviceKey: K,
+    serviceImplementation: ServiceImplementation<Services[K], Extension>
+  ): void;
+
   public addService<K extends keyof Services>(
     serviceKey: K,
     serviceImplementation: ServiceImplementationExtended<Services[K], Extension>
@@ -173,7 +186,7 @@ const wrapToHandler = (
 
 export type ExtractMiddleware<
   P extends ProtoCat<any, any>
-> = P extends ProtoCat<infer S, infer E> ? Middleware<E> : never
+> = P extends ProtoCat<infer S, infer E> ? StrictMiddleware<S, E> : never
 export type ExtractServices<P extends ProtoCat<any, any>> = P extends ProtoCat<
   infer S,
   infer E
