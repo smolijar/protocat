@@ -163,5 +163,5 @@ export type ServiceImplementation<T, Extension = {}> = RemoveIdxSgn<
 export type ServiceImplementationExtended<T, Extension = {}> = {
   [M in keyof ServiceImplementation<T, Extension>]:
     | ServiceImplementation<T, Extension>[M]
-    | Array<ServiceImplementation<T, Extension>[M]>
+    | [...Array<Middleware<Extension>>, ServiceImplementation<T, Extension>[M]]
 }

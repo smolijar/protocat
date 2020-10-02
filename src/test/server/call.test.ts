@@ -5,6 +5,7 @@ import {
   ExtractMiddleware,
   ExtractServices,
 } from '../../lib/server/application'
+import { Middleware } from '../../lib/server/call'
 
 describe('Context extension types', () => {
   const app = new ProtoCat({ GreetingService }, () => ({
@@ -39,11 +40,12 @@ describe('Context extension types', () => {
     serverStream: call => call.uid,
     unary: call => call.uid,
   }
+  const genMiddleware: Middleware<{ uid: string }> = call => call
   // Service definition inferred and explicit
   app.addService('GreetingService', {
     bidi: call => call.uid,
     unary: [unaryHandler],
-    serverStream: call => call.uid,
+    serverStream: [genMiddleware, call => call.uid],
     clientStream: [call => call.uid, serviceImpl.clientStream],
   })
   test('Type check', jest.fn())
