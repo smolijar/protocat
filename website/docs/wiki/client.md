@@ -109,7 +109,7 @@ Exciting feature of gRPC clients are interceptors. They are like middlewares for
 The native API is as always basic, verbose and powerful. For many simple use-cases too overwhelming. But since ProtoCat aims to support potentially existing intereceptors and yet provide an elegant way to define custom ones, it proves some basic creators to handle the basic use cases.
 
 :::tip
-Need more? You can create your custom interceptor that ones just the thing you need. See [gRFC for NodeJS Client Interceptors](https://github.com/grpc/proposal/blob/master/L5-node-client-interceptors.md) that has detailed overview of the specs the implementation follows.
+Need more? You can create your custom interceptor that ones just the thing you need. See [gRPC for NodeJS Client Interceptors](https://github.com/grpc/proposal/blob/master/L5-node-client-interceptors.md) that has detailed overview of the specs the implementation follows.
 :::
 
 ### Access log interceptor
