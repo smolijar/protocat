@@ -16,7 +16,7 @@ Read more in official [docs](https://grpc.io/docs/what-is-grpc/core-concepts/)
 
 ## Client metadata
 
-Initial metadata is sent by client on each call and received by the server immediately. It is a direct equivalent of request headers from HTTP.
+Initial metadata is sent by a client on each call and received by the server immediately. It is a direct equivalent of request headers from HTTP.
 
 In the service handler you can access it from `call.metadata` for reading.
 
