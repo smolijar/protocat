@@ -31,6 +31,7 @@ And create stubs with the following command from installed `grpc-tools`:
 ```bash
 npx grpc_tools_node_protoc \
     --js_out=import_style=commonjs,binary:. \
+    --ts_out=generate_package_definition:. \
     --grpc_out=grpc_js:. \
     ./cat.proto
 ```
