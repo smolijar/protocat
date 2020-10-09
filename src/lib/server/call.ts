@@ -81,31 +81,36 @@ export type ProtoCatStrictCall<
     grpc.ServiceDefinition<grpc.UntypedServiceImplementation>
   >,
   Extension = {}
-> = Keys<{
-  [SK in keyof Services]: Keys<RemoveIdxSgn<{
-    [MK in keyof Services[SK]]: Services[SK][MK] extends grpc.MethodDefinition<
-      infer Req,
-      infer Res
+> = Keys<
+  {
+    [SK in keyof Services]: Keys<
+      RemoveIdxSgn<
+        {
+          [MK in keyof Services[SK]]: Services[SK][MK] extends grpc.MethodDefinition<
+            infer Req,
+            infer Res
+          >
+            ? ProtoCatCall<
+                Extension,
+                Req,
+                Res,
+                MethodDef2CallType<Services[SK][MK]>,
+                Services[SK][MK]['path']
+              >
+            : never
+        }
+      >
     >
-      ? ProtoCatCall<
-          Extension,
-          Req,
-          Res,
-          MethodDef2CallType<Services[SK][MK]>,
-          Services[SK][MK]['path']
-        >
-      : never
-  }>>
-}>
+  }
+>
 
-export type StrictMiddleware<Services extends Record<
-string,
-grpc.ServiceDefinition<grpc.UntypedServiceImplementation>
->,
-Extension = {}> = (
-  call: ProtoCatStrictCall<Services, Extension>,
-  next: NextFn
-) => any
+export type StrictMiddleware<
+  Services extends Record<
+    string,
+    grpc.ServiceDefinition<grpc.UntypedServiceImplementation>
+  >,
+  Extension = {}
+> = (call: ProtoCatStrictCall<Services, Extension>, next: NextFn) => any
 
 /**
  * Application generic middleware
@@ -163,5 +168,5 @@ export type ServiceImplementation<T, Extension = {}> = RemoveIdxSgn<
 export type ServiceImplementationExtended<T, Extension = {}> = {
   [M in keyof ServiceImplementation<T, Extension>]:
     | ServiceImplementation<T, Extension>[M]
-    | [...Array<Middleware<Extension>>, ServiceImplementation<T, Extension>[M]]
+    | Array<ServiceImplementation<T, Extension>[M]>
 }

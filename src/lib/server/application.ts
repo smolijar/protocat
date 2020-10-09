@@ -9,6 +9,7 @@ import {
 import { stubToType } from '../call-types'
 import { bindAsync, tryShutdown, path2Fragments } from '../misc/grpc-helpers'
 import { composeMiddleware } from './middleware/compose-middleware'
+import { RemoveIdxSgn } from '../misc/type-helpers'
 
 /**
  * The main ProtoCat server application class
@@ -42,29 +43,23 @@ export class ProtoCat<
   /**
    * Add a global gRPC middleware for the application
    */
-  public use(...middleware: Array<Middleware<Extension>>): void;
-  public use(...middleware: Array<StrictMiddleware<Services, Extension>>): void;
+  public use(...middleware: Array<Middleware<Extension>>): void
+  public use(...middleware: Array<StrictMiddleware<Services, Extension>>): void
   public use(...middleware: any[]): void {
-    this.middleware.push(...middleware as any)
+    this.middleware.push(...(middleware as any))
   }
 
   /**
    * Add service stub and its definition
    */
-  public addService<K extends keyof Services>(
-    serviceKey: K,
-    serviceImplementation: ServiceImplementationExtended<Services[K], Extension>
-  ): void;
-
-  public addService<K extends keyof Services>(
-    serviceKey: K,
-    serviceImplementation: ServiceImplementation<Services[K], Extension>
-  ): void;
-
-  public addService<K extends keyof Services>(
-    serviceKey: K,
-    serviceImplementation: ServiceImplementationExtended<Services[K], Extension>
-  ) {
+  public addService<
+    K extends keyof Services,
+    S extends {
+      [I in keyof RemoveIdxSgn<Services[K]>]:
+        | ServiceImplementation<Services[K], Extension>[I]
+        | ServiceImplementationExtended<Services[K], Extension>[I]
+    }
+  >(serviceKey: K, serviceImplementation: S) {
     const serviceDefinition = this.services[serviceKey]
     for (const methodName in serviceDefinition) {
       // Path is FQN with namespace to avoid collisions
