@@ -37,8 +37,8 @@ npx grpc_tools_node_protoc \
 ```
 
 1. `--js_out` sets destination for JavaScript files for messages
+1. `--ts_out` generates the relevant `d.ts` files without needing to mention `grpc_tools_node_protoc_ts` explicitly
 1. `--grpc_out` sets destination for JavaScript files for gRPC services, sets to use `@grpc/grpc-js` implementation (instead of deprecated `grpc`)
-1. `grpc_tools_node_protoc_ts` does not have to be used explicitly, relevant `d.ts` files will be generated if the library is installed
 1. You can use `-I` for import path in your proto files in a larger project, see the `build:proto` task of ProtoCat, where stubs are compiled before tests
 
 The script should generate the following files:
