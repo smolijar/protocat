@@ -2,6 +2,7 @@ import * as grpc from '@grpc/grpc-js'
 import { ChannelOptions } from '@grpc/grpc-js/build/src/channel-options'
 import {
   Middleware,
+  ProtoCatStrictCall,
   ServiceImplementation,
   ServiceImplementationExtended,
   StrictMiddleware,
@@ -45,6 +46,7 @@ export class ProtoCat<
    */
   public use(...middleware: Array<Middleware<Extension>>): void
   public use(...middleware: Array<StrictMiddleware<Services, Extension>>): void
+  public use<P>(path: ProtoCatStrictCall<Services, {}>['path'], ...middleware: Array<Middleware<Extension>>): void
   public use(...middleware: any[]): void {
     this.middleware.push(...(middleware as any))
   }
@@ -188,3 +190,7 @@ export type ExtractServices<P extends ProtoCat<any, any>> = P extends ProtoCat<
 >
   ? { [key in keyof S]: ServiceImplementation<S[key], E> }
   : never
+
+export type ExtractPath<
+  P extends ProtoCat<any, any>
+> = P extends ProtoCat<infer S, infer E> ? ProtoCatStrictCall<S, E>['path'] : never

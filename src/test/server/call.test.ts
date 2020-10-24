@@ -3,6 +3,7 @@ import { GreetingService, IGreetingService } from '../../../dist/test/api/v1/hel
 import { path2Fragments } from '../../lib/misc/grpc-helpers'
 import {
   ExtractMiddleware,
+  ExtractPath,
   ExtractServices,
 } from '../../lib/server/application'
 import { Middleware } from '../../lib/server/call'
@@ -11,6 +12,8 @@ describe('Context extension types', () => {
   const app = new ProtoCat({ GreetingService }, () => ({
     uid: '',
   }))
+
+  type x = ExtractPath<typeof app>
 
   // Inferred middleware context
   app.use((call, next) => {
