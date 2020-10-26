@@ -11,7 +11,6 @@ script:
 - npm run build
 - npm run test:coverage
 - npm run test:codecov
-- npm run docs
 
 deploy:
   - provider: npm
