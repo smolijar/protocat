@@ -1,7 +1,22 @@
 import { Middleware, ProtoCatAnyCall } from '../call'
 import { CallType } from '../../call-types'
+import { Metadata } from '@grpc/grpc-js'
 
 type ErrorHandler = (error: Error, call: ProtoCatAnyCall) => any
+
+const merged = Symbol('protocat.merged')
+
+export const addMeta = (e: any, call: ProtoCatAnyCall) => {
+  if (e[merged]) return e
+  // Trailing metadata on error calls are taken from `error.metadata`, we pass on the existing trailing metadata
+  if (e?.metadata?.merge) {
+    e.metadata.merge(call.trailingMetadata)
+  } else {
+    e.metadata = call.trailingMetadata
+  }
+  e[merged] = true
+  return e
+}
 
 /**
  * Patches emit function to intercept errors with a handler to be able to consume or map dispatched errors on stream, before existing listeners are invoked.
@@ -12,12 +27,6 @@ type ErrorHandler = (error: Error, call: ProtoCatAnyCall) => any
  */
 const mapError = (emitter: any, handler: ErrorHandler) => {
   const originalEmit = emitter.emit
-  const addMeta = (e: any) => {
-    // Trailing metadata on error calls are taken from `error.metadata`, we pass on the existing trailing metadata
-    // TODO: At this point existing metadata on error is lost
-    e.metadata = emitter.trailingMetadata
-    return e
-  }
   emitter.emit = async (...args: any[]) => {
     if (args[0] !== 'error') {
       return originalEmit.apply(emitter, args)
@@ -26,7 +35,8 @@ const mapError = (emitter: any, handler: ErrorHandler) => {
       await handler(args[1], emitter)
     } catch (e) {
       emitter.flushInitialMetadata()
-      originalEmit.apply(emitter, ['error', addMeta(e)])
+      addMeta(e, emitter)
+      originalEmit.apply(emitter, ['error', e])
     }
   }
 }

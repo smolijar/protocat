@@ -11,6 +11,12 @@ import {
 } from '@grpc/grpc-js'
 import { Hello } from '../../../../dist/test/api/v1/hello_pb'
 
+const createError = (x: string) => {
+  const metadata = new Metadata()
+  metadata.set('_', x)
+  return Object.assign(new Error(x), { metadata })
+}
+
 const ADDR = '0.0.0.0:3000'
 describe('Error handling', () => {
   const app = new ProtoCat()
@@ -19,27 +25,27 @@ describe('Error handling', () => {
   test('Setup', async () => {
     app.addService(GreetingService, {
       unary: call => {
-        throw new Error('unary-error')
+        throw createError('unary-error')
       },
       serverStream: call => {
         if (call.metadata.getMap().type === 'sync') {
-          throw new Error('serverStream-sync-error')
+          throw createError('serverStream-sync-error')
         } else {
-          call.emit('error', new Error('serverStream-stream-error'))
+          call.emit('error', createError('serverStream-stream-error'))
         }
       },
       clientStream: call => {
         if (call.meta.type === 'sync') {
-          throw new Error('clientStream-sync-error')
+          throw createError('clientStream-sync-error')
         } else {
-          call.emit('error', new Error('clientStream-stream-error'))
+          call.emit('error', createError('clientStream-stream-error'))
         }
       },
       bidi: call => {
         if (call.meta.type === 'sync') {
-          throw new Error('bidi-sync-error')
+          throw createError('bidi-sync-error')
         } else {
-          call.emit('error', new Error('bidi-stream-error'))
+          call.emit('error', createError('bidi-stream-error'))
         }
       },
     })
