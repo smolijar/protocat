@@ -113,6 +113,9 @@ describe('Error handling', () => {
         expect((await status).metadata.getMap().trailing).toBe('unary-trailing')
         expect((await status).metadata.getMap().onerror).toBe('unary-onerror')
       })
+      test('Trailing (status) metadata - error', async () => {
+        expect((await status).metadata.getMap()._).toBe('unary-error')
+      })
       test('Initial metadata', async () => {
         expect((await metadata).getMap().initial).toEqual('unary')
         expect((await metadata).getMap().onerror).toEqual('unary-onerror')
@@ -169,6 +172,11 @@ describe('Error handling', () => {
             'serverStream-trailing'
           )
           expect(status.metadata.getMap().onerror).toBe('serverStream-onerror')
+        })
+        test('Trailing (status) metadata - error', async () => {
+          expect((await status).metadata.getMap()._).toBe(
+            `serverStream-${type}-error`
+          )
         })
         test('Initial metadata', async () => {
           expect((await metadata).getMap().initial).toEqual('serverStream')
@@ -227,6 +235,11 @@ describe('Error handling', () => {
           )
           expect(status.metadata.getMap().onerror).toBe('clientStream-onerror')
         })
+        test('Trailing (status) metadata - error', async () => {
+          expect((await status).metadata.getMap()._).toBe(
+            `clientStream-${type}-error`
+          )
+        })
         test('Initial metadata', async () => {
           expect((await metadata).getMap().initial).toEqual('clientStream')
           expect((await metadata).getMap().onerror).toEqual(
@@ -280,6 +293,9 @@ describe('Error handling', () => {
         test('Trailing (status) metadata', () => {
           expect(status.metadata.getMap().trailing).toBe('bidi-trailing')
           expect(status.metadata.getMap().onerror).toBe('bidi-onerror')
+        })
+        test('Trailing (status) metadata - error', async () => {
+          expect((await status).metadata.getMap()._).toBe(`bidi-${type}-error`)
         })
         test('Initial metadata', async () => {
           expect((await metadata).getMap().initial).toEqual('bidi')
