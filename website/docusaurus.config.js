@@ -23,12 +23,6 @@ module.exports = {
           position: 'left',
         },
         {
-          to: 'docs/api/index',
-          activeBasePath: 'docs/api',
-          label: 'API',
-          position: 'left',
-        },
-        {
           href: 'https://github.com/grissius/protocat',
           position: 'right',
           className: 'header-github-link',
