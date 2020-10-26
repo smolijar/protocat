@@ -21,6 +21,7 @@ export type RemoveIdxSgn<T> = Pick<T, KnownKeys<T>>
 // Omit never value keys from object
 export type OmitNeverKeys<T> = Pick<T, NeverKeys<T>>
 
+/* eslint-disable @typescript-eslint/method-signature-style */
 export type TypedOnData<E extends EventEmitter, T> = Omit<E, 'on'> & {
   on(event: 'close', listener: () => void): E
   on(event: 'data', listener: (chunk: T) => void): E

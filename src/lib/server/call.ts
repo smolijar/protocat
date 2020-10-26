@@ -8,7 +8,7 @@ import { Serialize } from '@grpc/grpc-js/build/src/make-client'
  * Extended gRPC call
  */
 export type ProtoCatCall<
-  Extension = {},
+  Extension = unknown,
   Req = Message,
   Res = Message,
   Type extends CallType = CallType
@@ -45,18 +45,18 @@ export type ProtoCatCall<
     ? grpc.ServerUnaryCall<Req, Res> & {
         response: Res
       }
-    : {}) &
+    : unknown) &
   (Type extends CallType.ClientStream
     ? TypedOnData<grpc.ServerReadableStream<Req, Res>, Req> & {
         response: Res
       }
-    : {}) &
+    : unknown) &
   (Type extends CallType.ServerStream
     ? grpc.ServerWritableStream<Req, Res>
-    : {}) &
+    : unknown) &
   (Type extends CallType.Bidi
     ? TypedOnData<grpc.ServerDuplexStream<Req, Res>, Req>
-    : {})
+    : unknown)
 
 /**
  * Call stack of the subsequent middlewares and handlers.
@@ -66,7 +66,7 @@ export type NextFn = () => Promise<void>
 /**
  * Union of all context types for generic middleware interface
  */
-export type ProtoCatAnyCall<Extension = {}> =
+export type ProtoCatAnyCall<Extension = unknown> =
   | ProtoCatCall<Extension, Message, Message, CallType.Unary>
   | ProtoCatCall<Extension, Message, Message, CallType.ServerStream>
   | ProtoCatCall<Extension, Message, Message, CallType.ClientStream>
@@ -75,7 +75,7 @@ export type ProtoCatAnyCall<Extension = {}> =
 /**
  * Application generic middleware
  */
-export type Middleware<Extension = {}> = (
+export type Middleware<Extension = unknown> = (
   call: ProtoCatAnyCall<Extension>,
   next: NextFn
 ) => any
@@ -99,7 +99,7 @@ type MethodDef2CallType<
  */
 type MethodDef2ServiceHandler<
   H,
-  Extension = {}
+  Extension = unknown
 > = H extends grpc.MethodDefinition<infer Req, infer Res>
   ? (
       call: ProtoCatCall<Extension, Req, Res, MethodDef2CallType<H>>,
@@ -118,14 +118,14 @@ type MethodDef2ServiceHandler<
  * >['unary'] = call => call.uid
  * ```
  */
-export type ServiceImplementation<T, Extension = {}> = RemoveIdxSgn<
+export type ServiceImplementation<T, Extension = unknown> = RemoveIdxSgn<
   {
     [M in keyof T]: MethodDef2ServiceHandler<T[M], Extension>
   }
 >
 
 /** ServiceImplementation with array of middlewares */
-export type ServiceImplementationExtended<T, Extension = {}> = {
+export type ServiceImplementationExtended<T, Extension = unknown> = {
   [M in keyof ServiceImplementation<T, Extension>]:
     | ServiceImplementation<T, Extension>[M]
     | Array<ServiceImplementation<T, Extension>[M]>

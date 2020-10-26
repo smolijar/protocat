@@ -2,7 +2,7 @@ import { Middleware, ProtoCatCall } from '../call'
 import { CallType } from '../../call-types'
 import { Message } from 'google-protobuf'
 
-export interface CacheImplementation<E = {}> {
+export interface CacheImplementation<E = unknown> {
   /**
    * Create a unique cache key that will be used for response save and lookup.
    *
@@ -24,7 +24,7 @@ export interface CacheImplementation<E = {}> {
   ) => void
 }
 
-export const createCache = <E = {}>(
+export const createCache = <E = unknown>(
   /** Response binary cache implementation */
   cache: CacheImplementation<E>,
   /** Optional callback to react on cache miss/hit. Called once per request ASAP after cache retrieval */

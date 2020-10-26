@@ -8,7 +8,7 @@ import { composeMiddleware } from './middleware/compose-middleware'
 /**
  * The main ProtoCat server application class
  */
-export class ProtoCat<Extension = {}> {
+export class ProtoCat<Extension = unknown> {
   /** Underlying gRPC server */
   public server: grpc.Server
   /** Map of loaded generated method stubs */
@@ -45,7 +45,7 @@ export class ProtoCat<Extension = {}> {
       const key = serviceDefinition[methodName].path
       this.methodDefinitions[key] = serviceDefinition[methodName]
       this.serviceHandlers[key] = (this.serviceHandlers[key] || []).concat(
-        // @ts-ignore
+        // @ts-expect-error
         serviceImplementation[methodName]
       )
     }
@@ -133,7 +133,7 @@ const wrapToHandler = (
     cb?: grpc.sendUnaryData<any> // Only for call grpc.ServerReadableStream<any, any> | grpc.ServerUnaryCall<any, any>, missing otherwise
   ) => {
     const call = createContext(grpcCall)
-    // @ts-ignore: Not part of public API, but only way to pair message to method
+    // @ts-expect-error: Not part of public API, but only way to pair message to method
     call.response = new methodDefinition.responseType()
     try {
       await methodHandler(call)
