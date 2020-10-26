@@ -11,6 +11,12 @@ import {
 } from '@grpc/grpc-js'
 import { Hello } from '../../../../dist/test/api/v1/hello_pb'
 
+const createError = (x: string) => {
+  const metadata = new Metadata()
+  metadata.set('_', x)
+  return Object.assign(new Error(x), { metadata })
+}
+
 const ADDR = '0.0.0.0:3000'
 describe('Error handling', () => {
   const app = new ProtoCat()
@@ -19,27 +25,27 @@ describe('Error handling', () => {
   test('Setup', async () => {
     app.addService(GreetingService, {
       unary: call => {
-        throw new Error('unary-error')
+        throw createError('unary-error')
       },
       serverStream: call => {
         if (call.metadata.getMap().type === 'sync') {
-          throw new Error('serverStream-sync-error')
+          throw createError('serverStream-sync-error')
         } else {
-          call.emit('error', new Error('serverStream-stream-error'))
+          call.emit('error', createError('serverStream-stream-error'))
         }
       },
       clientStream: call => {
         if (call.meta.type === 'sync') {
-          throw new Error('clientStream-sync-error')
+          throw createError('clientStream-sync-error')
         } else {
-          call.emit('error', new Error('clientStream-stream-error'))
+          call.emit('error', createError('clientStream-stream-error'))
         }
       },
       bidi: call => {
         if (call.meta.type === 'sync') {
-          throw new Error('bidi-sync-error')
+          throw createError('bidi-sync-error')
         } else {
-          call.emit('error', new Error('bidi-stream-error'))
+          call.emit('error', createError('bidi-stream-error'))
         }
       },
     })
@@ -107,6 +113,9 @@ describe('Error handling', () => {
         expect((await status).metadata.getMap().trailing).toBe('unary-trailing')
         expect((await status).metadata.getMap().onerror).toBe('unary-onerror')
       })
+      test('Trailing (status) metadata - error', async () => {
+        expect((await status).metadata.getMap()._).toBe('unary-error')
+      })
       test('Initial metadata', async () => {
         expect((await metadata).getMap().initial).toEqual('unary')
         expect((await metadata).getMap().onerror).toEqual('unary-onerror')
@@ -163,6 +172,11 @@ describe('Error handling', () => {
             'serverStream-trailing'
           )
           expect(status.metadata.getMap().onerror).toBe('serverStream-onerror')
+        })
+        test('Trailing (status) metadata - error', async () => {
+          expect((await status).metadata.getMap()._).toBe(
+            `serverStream-${type}-error`
+          )
         })
         test('Initial metadata', async () => {
           expect((await metadata).getMap().initial).toEqual('serverStream')
@@ -221,6 +235,11 @@ describe('Error handling', () => {
           )
           expect(status.metadata.getMap().onerror).toBe('clientStream-onerror')
         })
+        test('Trailing (status) metadata - error', async () => {
+          expect((await status).metadata.getMap()._).toBe(
+            `clientStream-${type}-error`
+          )
+        })
         test('Initial metadata', async () => {
           expect((await metadata).getMap().initial).toEqual('clientStream')
           expect((await metadata).getMap().onerror).toEqual(
@@ -274,6 +293,9 @@ describe('Error handling', () => {
         test('Trailing (status) metadata', () => {
           expect(status.metadata.getMap().trailing).toBe('bidi-trailing')
           expect(status.metadata.getMap().onerror).toBe('bidi-onerror')
+        })
+        test('Trailing (status) metadata - error', async () => {
+          expect((await status).metadata.getMap()._).toBe(`bidi-${type}-error`)
         })
         test('Initial metadata', async () => {
           expect((await metadata).getMap().initial).toEqual('bidi')

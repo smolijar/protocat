@@ -4,6 +4,7 @@ import { Middleware, ServiceImplementationExtended } from './call'
 import { stubToType } from '../call-types'
 import { bindAsync, tryShutdown, path2Fragments } from '../misc/grpc-helpers'
 import { composeMiddleware } from './middleware/compose-middleware'
+import { addMeta } from './middleware/on-error'
 
 /**
  * The main ProtoCat server application class
@@ -144,9 +145,9 @@ const wrapToHandler = (
     } catch (e) {
       call.flushInitialMetadata()
       if (cb) {
-        cb(e, null, call.trailingMetadata)
+        cb(addMeta(e, call), null, call.trailingMetadata)
       } else {
-        grpcCall.emit('error', e)
+        grpcCall.emit('error', addMeta(e, call))
       }
     }
   }
