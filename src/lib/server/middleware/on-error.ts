@@ -1,10 +1,42 @@
 import { Middleware, ProtoCatAnyCall } from '../call'
 import { CallType } from '../../call-types'
+import { Status } from '../../../../dist/proto/status_pb'
+import { BadRequest, DebugInfo, Help, LocalizedMessage, PreconditionFailure, QuotaFailure, RequestInfo, ResourceInfo, RetryInfo } from '../../../../dist/proto/error_details_pb'
+import { Any } from 'google-protobuf/google/protobuf/any_pb'
+import { Message } from 'google-protobuf'
 import { Metadata } from '@grpc/grpc-js'
 
 type ErrorHandler = (error: Error, call: ProtoCatAnyCall) => any
 
 const merged = Symbol('protocat.merged')
+
+const detailsMap = {
+  'google.rpc.RetryInfo': RetryInfo,
+  'google.rpc.DebugInfo': DebugInfo,
+  'google.rpc.QuotaFailure': QuotaFailure,
+  'google.rpc.PreconditionFailure': PreconditionFailure,
+  'google.rpc.BadRequest': BadRequest,
+  'google.rpc.RequestInfo': RequestInfo,
+  'google.rpc.ResourceInfo': ResourceInfo,
+  'google.rpc.Help': Help,
+  'google.rpc.LocalizedMessage': LocalizedMessage,
+}
+
+const getName = (m: any) => {
+  for (const name in detailsMap) {
+    if (m instanceof (detailsMap as Record<string, typeof Message>)[name]) return name
+  }
+}
+
+export const getErrorDetails = (meta: Metadata): Array<typeof detailsMap extends Record<any, new (...args: any) => infer X> ? X : never> => {
+  const x = meta.get('grpc-status-details-bin')[0]
+  if (x && x instanceof Buffer) {
+    const st = Status.deserializeBinary(x)
+    // @ts-ignore
+    return st.getDetailsList().map(m => detailsMap[m.getTypeName()]?.deserializeBinary(m.getValue_asU8())).filter(x => x)
+  }
+  return []
+}
 
 export const addMeta = (e: any, call: ProtoCatAnyCall) => {
   if (e[merged]) return e
@@ -15,6 +47,25 @@ export const addMeta = (e: any, call: ProtoCatAnyCall) => {
     e.metadata = call.trailingMetadata
   }
   e[merged] = true
+
+  if (Array.isArray(e.details)) {
+    // @ts-ignore
+    const detailList = (e.details as Message[])
+      .filter(d => 'serializeBinary' in d)
+      .map(m => {
+        const a = new Any()
+        a.pack(m.serializeBinary(), getName(m) ?? '')
+        return a
+      })
+    if (detailList.length) {
+      const st = new Status()
+      st.setDetailsList(detailList)
+      e.metadata.set(
+        'grpc-status-details-bin',
+        Buffer.from(st.serializeBinary())
+      )
+    }
+  }
   return e
 }
 

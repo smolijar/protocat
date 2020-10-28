@@ -10,11 +10,14 @@ import {
   StatusObject,
 } from '@grpc/grpc-js'
 import { Hello } from '../../../../dist/test/api/v1/hello_pb'
+import { RequestInfo } from '../../../../dist/proto/error_details_pb'
+import { getErrorDetails } from '../../../lib/server/middleware/on-error'
+
 
 const createError = (x: string) => {
   const metadata = new Metadata()
   metadata.set('_', x)
-  return Object.assign(new Error(x), { metadata })
+  return Object.assign(new Error(x), { metadata }, { details: [new RequestInfo().setRequestId(x), new Hello()] })
 }
 
 const ADDR = '0.0.0.0:3000'
@@ -115,6 +118,9 @@ describe('Error handling', () => {
       })
       test('Trailing (status) metadata - error', async () => {
         expect((await status).metadata.getMap()._).toBe('unary-error')
+      })
+      test('Trailing (status) metadata - error details', async () => {
+        expect(getErrorDetails((await status).metadata).map(x => x.toObject())).toBe('unary-error')
       })
       test('Initial metadata', async () => {
         expect((await metadata).getMap().initial).toEqual('unary')
