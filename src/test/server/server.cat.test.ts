@@ -42,7 +42,7 @@ describe('CatService (real world example)', () => {
           lastLat = req.getLat()
           lastLng = req.getLng()
         })
-        await new Promise(resolve =>
+        await new Promise<void>(resolve =>
           call.on('end', () => {
             call.response = new ShareLocationResponse().setTravelledMeters(
               travelled
@@ -76,7 +76,7 @@ describe('CatService (real world example)', () => {
   })
   test('WatchCats (client-cancelled server side stream)', async () => {
     const client = new CatClient(ADDR, ChannelCredentials.createInsecure())
-    await new Promise<Cat>((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
       const call = client.watchCats(new WatchCatsRequest())
       const seenCats: string[] = []
       call.on('data', cat => {

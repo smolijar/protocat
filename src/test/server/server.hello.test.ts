@@ -58,7 +58,7 @@ describe('HelloService (boring, predictable and exhaustive)', () => {
         call.on('data', req => {
           acc += req.getName()
         })
-        await new Promise(resolve =>
+        await new Promise<void>(resolve =>
           call.on('end', () => {
             call.response = new Hello().setName(acc)
             resolve()
@@ -129,7 +129,7 @@ describe('HelloService (boring, predictable and exhaustive)', () => {
     clientMeta.set('client', 'serverStreamClientMeta')
     test('Response stream', async () => {
       let acc = ''
-      await new Promise<Hello>((resolve, reject) => {
+      await new Promise<void>((resolve, reject) => {
         const call = client.serverStream(new Hello(), clientMeta)
         metadata = new Promise(resolve => call.on('metadata', resolve))
         status = new Promise(resolve => call.on('status', resolve))
