@@ -132,7 +132,7 @@ describe('Error handling', () => {
         const clientMeta = new Metadata()
         clientMeta.set('catch', 'true')
         clientMeta.set('type', type)
-        await new Promise<Hello>((resolve, reject) => {
+        await new Promise<void>((resolve, reject) => {
           const call = client.serverStream(new Hello(), clientMeta)
           call.on('data', hello => hello)
           call.on('end', () => resolve())
@@ -150,7 +150,7 @@ describe('Error handling', () => {
 
         test('Throws', async () => {
           await expect(
-            new Promise<Hello>((resolve, reject) => {
+            new Promise<void>((resolve, reject) => {
               const call = client.serverStream(new Hello(), clientMeta)
               call.on('end', () => resolve())
               metadata = new Promise(resolve => call.on('metadata', resolve))
@@ -259,7 +259,7 @@ describe('Error handling', () => {
         const clientMeta = new Metadata()
         clientMeta.set('catch', 'true')
         clientMeta.set('type', type)
-        await new Promise<Hello>((resolve, reject) => {
+        await new Promise<void>((resolve, reject) => {
           const call = client.bidi(clientMeta)
           call.on('data', hello => hello)
           call.on('end', () => resolve())
@@ -274,7 +274,7 @@ describe('Error handling', () => {
         let metadata: Promise<Metadata> = null as any
         test('Throws', async () => {
           await expect(
-            new Promise<Hello>((resolve, reject) => {
+            new Promise<void>((resolve, reject) => {
               const call = client.bidi(clientMeta)
               call.on('end', () => resolve())
               metadata = new Promise(resolve => call.on('metadata', resolve))

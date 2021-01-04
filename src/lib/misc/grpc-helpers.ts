@@ -2,7 +2,7 @@ import * as grpc from '@grpc/grpc-js'
 
 /** Promise wrapper for callback tryShutdown */
 export const tryShutdown = (server: grpc.Server) =>
-  new Promise((resolve, reject) =>
+  new Promise<void>((resolve, reject) =>
     server.tryShutdown(err => (err ? reject(err) : resolve()))
   )
 
