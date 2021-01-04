@@ -6,13 +6,13 @@
 
 Modern, minimalist type-safe gRPC framework for Node.js
 
-[![](https://flat.badgen.net/travis/grissius/protocat)](https://travis-ci.com/github/grissius/protocat)
+[![](https://flat.badgen.net/travis/grissius/protocat/master)](https://travis-ci.com/github/grissius/protocat)
 [![](https://flat.badgen.net/npm/v/protocat)](https://www.npmjs.com/package/protocat)
 [![](https://flat.badgen.net/codecov/c/github/grissius/protocat)](https://codecov.io/gh/grissius/protocat)
 [![](https://flat.badgen.net/codeclimate/maintainability/grissius/protocat)](https://codeclimate.com/github/grissius/protocat)
 [![](https://flat.badgen.net/github/license/grissius/protocat)](https://github.com/grissius/protocat/blob/master/LICENSE)
 [![](https://flat.badgen.net/david/dep/grissius/protocat)](https://david-dm.org/grissius/protocat)
-[![](https://flat.badgen.net/snyk/grissius/protocat)](https://snyk.io/vuln/npm:protocat)
+[![](https://flat.badgen.net/snyk/grissius/protocat/master)](https://snyk.io/vuln/npm:protocat)
 [![](https://flat.badgen.net/badge/%F0%9F%93%91%20docs/pages/cyan)](https://proto.cat)
 
 </div>
