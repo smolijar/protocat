@@ -2,18 +2,20 @@ import { EventEmitter } from 'events'
 
 // List object keys without index signatures
 // KnownKeys<{ [index: string]: string; foo: string }> = 'foo'
-type KnownKeys<T> = {
+type KnownKeys<T> = ({
   [K in keyof T]: string extends K ? never : number extends K ? never : K
 } extends { [_ in keyof T]: infer U }
   ? U
-  : never
+  : never) &
+  keyof T
 
 // List keys with never value
-type NeverKeys<T> = {
+type NeverKeys<T> = ({
   [K in keyof T]: T[K] extends never ? never : K
 } extends { [_ in keyof T]: infer U }
   ? U
-  : never
+  : never) &
+  keyof T
 
 // Remove index signature keys from object
 // RemoveIdxSgn<{ [index: string]: string; foo: string }> = { foo: string }
