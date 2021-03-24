@@ -31,6 +31,8 @@
     "docs:typedoc": "rm -rf ./website/docs/api && typedoc --out ./website/docs/api",
     "docs:docusaurus": "npm install --prefix=website && npm run build --prefix=website",
     "check": "npm-check -i app -i errors -i config -i index & exit 0",
+    "refl_run": "tsc && node dist/lib/server/reflection_run.js",
+    "refl": "curl https://raw.githubusercontent.com/grpc/grpc/master/src/proto/grpc/reflection/v1alpha/reflection.proto > src/test/api/v1/reflection.proto",
     "cs:eslint:check": "eslint --ignore-path .gitignore '**/*.ts' -f codeframe",
     "cs:eslint:fix": "npm run cs:eslint:check -- --fix",
     "cs:prettier:check": "prettier --ignore-path .gitignore --check '**/*.{ts,js,json,md}'",
@@ -40,7 +42,9 @@
   },
   "dependencies": {
     "@grpc/grpc-js": "1.2.2",
-    "@types/google-protobuf": "^3.7.4"
+    "@grpc/proto-loader": "^0.5.6",
+    "@types/google-protobuf": "^3.7.4",
+    "protobufjs": "^6.10.2"
   },
   "devDependencies": {
     "@ackee/styleguide-backend-config": "^0.2.2",
