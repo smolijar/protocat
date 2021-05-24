@@ -24,29 +24,31 @@ export interface CacheImplementation<E = unknown> {
   ) => void
 }
 
-export const createCache = <E = unknown>(
-  /** Response binary cache implementation */
-  cache: CacheImplementation<E>,
-  /** Optional callback to react on cache miss/hit. Called once per request ASAP after cache retrieval */
-  cb?: (
-    call: ProtoCatCall<E, Message, Message, CallType.Unary>,
-    hit: boolean,
-    hash: string
-  ) => any
-): Middleware<E> => async (call, next) => {
-  if (call.type !== CallType.Unary) return next()
-  const key = await cache.hash(call)
-  if (!key) return next()
-  let cached = await cache.get(key, call)
-  if (!cached) {
-    // cache miss
-    await cb?.(call, false, key)
-    await next()
-    cached = call.responseSerialize(call.response)
-    cache.set(key, cached, call)
-  } else {
-    // cache hit
-    await cb?.(call, true, key)
+export const createCache =
+  <E = unknown>(
+    /** Response binary cache implementation */
+    cache: CacheImplementation<E>,
+    /** Optional callback to react on cache miss/hit. Called once per request ASAP after cache retrieval */
+    cb?: (
+      call: ProtoCatCall<E, Message, Message, CallType.Unary>,
+      hit: boolean,
+      hash: string
+    ) => any
+  ): Middleware<E> =>
+  async (call, next) => {
+    if (call.type !== CallType.Unary) return next()
+    const key = await cache.hash(call)
+    if (!key) return next()
+    let cached = await cache.get(key, call)
+    if (!cached) {
+      // cache miss
+      await cb?.(call, false, key)
+      await next()
+      cached = call.responseSerialize(call.response)
+      cache.set(key, cached, call)
+    } else {
+      // cache hit
+      await cb?.(call, true, key)
+    }
+    call.bufferedResponse = cached
   }
-  call.bufferedResponse = cached
-}

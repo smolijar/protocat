@@ -9,13 +9,18 @@ describe('Middleware', () => {
       let acc = ''
       await composeMiddleware(
         chain.split('').map(
-          (char): Middleware => async (call, next) => {
-            acc += char
-            await new Promise(resolve => setTimeout(resolve, Math.random() * 5))
-            await next()
-            await new Promise(resolve => setTimeout(resolve, Math.random() * 5))
-            acc += char
-          }
+          (char): Middleware =>
+            async (call, next) => {
+              acc += char
+              await new Promise(resolve =>
+                setTimeout(resolve, Math.random() * 5)
+              )
+              await next()
+              await new Promise(resolve =>
+                setTimeout(resolve, Math.random() * 5)
+              )
+              acc += char
+            }
         )
       )(null as any, () => Promise.resolve())
       // expect correctly closed brackets without overlaps

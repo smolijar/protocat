@@ -83,29 +83,26 @@ export type Middleware<Extension = unknown> = (
 /**
  * @internal
  */
-type MethodDef2CallType<
-  M extends grpc.MethodDefinition<any, any>
-> = M['requestStream'] extends true
-  ? M['responseStream'] extends true
-    ? CallType.Bidi
-    : CallType.ClientStream
-  : M['responseStream'] extends true
-  ? CallType.ServerStream
-  : CallType.Unary
+type MethodDef2CallType<M extends grpc.MethodDefinition<any, any>> =
+  M['requestStream'] extends true
+    ? M['responseStream'] extends true
+      ? CallType.Bidi
+      : CallType.ClientStream
+    : M['responseStream'] extends true
+    ? CallType.ServerStream
+    : CallType.Unary
 
 /**
  * Convert a single method definition to service handler type
  * @internal
  */
-type MethodDef2ServiceHandler<
-  H,
-  Extension = unknown
-> = H extends grpc.MethodDefinition<infer Req, infer Res>
-  ? (
-      call: ProtoCatCall<Extension, Req, Res, MethodDef2CallType<H>>,
-      next: NextFn
-    ) => any
-  : never
+type MethodDef2ServiceHandler<H, Extension = unknown> =
+  H extends grpc.MethodDefinition<infer Req, infer Res>
+    ? (
+        call: ProtoCatCall<Extension, Req, Res, MethodDef2CallType<H>>,
+        next: NextFn
+      ) => any
+    : never
 
 /**
  * Create service handler type for whole client definition.
