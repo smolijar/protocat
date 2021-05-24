@@ -11,31 +11,23 @@ type StreamRequestSetup<Req> = (
   metadata: grpc.Metadata,
   options: Partial<grpc.CallOptions>
 ) => any
-type BidiCall<Req, Res> = (
-  setup?: StreamRequestSetup<Req>
-) => {
+type BidiCall<Req, Res> = (setup?: StreamRequestSetup<Req>) => {
   call: TypedOnData<grpc.ClientDuplexStream<Req, Res>, Res>
   metadata: Promise<grpc.Metadata>
   status: Promise<grpc.StatusObject>
 }
-type ServerStreamCall<Req, Res> = (
-  setup?: UnaryRequestSetup<Req>
-) => {
+type ServerStreamCall<Req, Res> = (setup?: UnaryRequestSetup<Req>) => {
   call: TypedOnData<grpc.ClientReadableStream<Res>, Res>
   metadata: Promise<grpc.Metadata>
   status: Promise<grpc.StatusObject>
 }
-type ClientStreamCall<Req, Res> = (
-  setup?: StreamRequestSetup<Req>
-) => {
+type ClientStreamCall<Req, Res> = (setup?: StreamRequestSetup<Req>) => {
   response: Promise<Res>
   call: grpc.ClientWritableStream<Req>
   metadata: Promise<grpc.Metadata>
   status: Promise<grpc.StatusObject>
 }
-type UnaryCall<Req, Res> = (
-  setup?: UnaryRequestSetup<Req>
-) => Promise<{
+type UnaryCall<Req, Res> = (setup?: UnaryRequestSetup<Req>) => Promise<{
   response: Res
   call: grpc.ClientUnaryCall
   metadata: grpc.Metadata
@@ -187,10 +179,8 @@ export const createClient = <
     ) as any
   } else {
     const res: any = {}
-    const clientObj: Record<
-      string,
-      new (...args: any[]) => grpc.Client
-    > = clientDef as any
+    const clientObj: Record<string, new (...args: any[]) => grpc.Client> =
+      clientDef as any
     for (const key in clientObj) {
       res[key] = updateClientInstance(
         new clientObj[key](

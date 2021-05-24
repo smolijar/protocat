@@ -12,7 +12,10 @@ import { performance } from 'perf_hooks'
 import { ServiceImplementation } from '../../../lib/server/call'
 import { createClient } from '../../../lib/client/client'
 
-const inf = <R>() => <T extends R>(_: T) => _
+const inf =
+  <R>() =>
+  <T extends R>(_: T) =>
+    _
 const uniq = <T>(xs: T[]) => Array.from(new Set(xs))
 type UnwrapP<T> = T extends Promise<infer _> ? _ : T
 

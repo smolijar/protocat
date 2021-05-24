@@ -62,20 +62,19 @@ const mapError = (emitter: any, handler: ErrorHandler) => {
  *
  * @param handler Custom error handler for re-throwing errors and error emits. Result is awaited.
  */
-export const onError = (handler: ErrorHandler): Middleware => async (
-  call,
-  next
-) => {
-  if (
-    call.type === CallType.ServerStream ||
-    call.type === CallType.Bidi ||
-    call.type === CallType.ClientStream
-  ) {
-    mapError(call, handler)
+export const onError =
+  (handler: ErrorHandler): Middleware =>
+  async (call, next) => {
+    if (
+      call.type === CallType.ServerStream ||
+      call.type === CallType.Bidi ||
+      call.type === CallType.ClientStream
+    ) {
+      mapError(call, handler)
+    }
+    try {
+      await next()
+    } catch (e) {
+      await handler(e, call)
+    }
   }
-  try {
-    await next()
-  } catch (e) {
-    await handler(e, call)
-  }
-}
