@@ -2,7 +2,7 @@ import { Middleware, ProtoCatAnyCall } from '../call'
 import { CallType } from '../../call-types'
 import { Metadata } from '@grpc/grpc-js'
 
-type ErrorHandler = (error: Error, call: ProtoCatAnyCall) => any
+type ErrorHandler = (error: unknown, call: ProtoCatAnyCall) => any
 
 const merged = Symbol('protocat.merged')
 

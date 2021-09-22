@@ -2,17 +2,14 @@ import { EventEmitter } from 'events'
 
 // List object keys without index signatures
 // KnownKeys<{ [index: string]: string; foo: string }> = 'foo'
-type KnownKeys<T> = ({
+type KnownKeys<T> = {
   [K in keyof T]: string extends K ? never : number extends K ? never : K
-} extends { [_ in keyof T]: infer U }
-  ? U
-  : never) &
-  keyof T
+} extends Record<any, infer X> ? X extends keyof T ? X : never : never
 
 // List keys with never value
 type NeverKeys<T> = ({
   [K in keyof T]: T[K] extends never ? never : K
-} extends { [_ in keyof T]: infer U }
+} extends Record<any, infer U>
   ? U
   : never) &
   keyof T
