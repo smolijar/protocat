@@ -27,7 +27,7 @@
     "test:coverage": "npm run test -- --collectCoverage",
     "test:codecov": "codecov",
     "prepare": "npm run build",
-    "docs": "npm run docs:typedoc && npm run docs:docusaurus",
+    "docs": "npm run docs:docusaurus",
     "docs:docusaurus": "npm install --prefix=website && npm run build --prefix=website",
     "check": "npm-check -i app -i errors -i config -i index & exit 0",
     "cs:eslint:check": "eslint --ignore-path .gitignore '**/*.ts' -f codeframe",
