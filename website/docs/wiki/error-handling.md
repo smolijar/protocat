@@ -19,6 +19,8 @@ app.use(async (call, next) => {
 
 The `next` call contains a complete call stack from the following middlewares/handlers only, that is why it is recommended to use your error-handling middleware as one of the firsts.
 
+Note that error determines the status of the response. If a valid response is returned, default `1 OK` status is filled. Aligned with the `@grpc/grpc-js` implementation, any other code is communicated by throwing an error / rejecting in the call chain. When an error is thrown, it's `code` property is used as the resulting gRPC status code. If none is set, `2 UNKNOWN` is used instead.
+
 ## Advanced handler
 
 The simple handler is a perfectly valid option for the synchronous (or asynchronous, "linear") code: like unary calls. In that scenario, you don't need more than that. When working with streams however, the situation is more complicated. When an error is emitted on a stream, it "cannot" be caught and re-thrown, since there could be several listeners on the emitter, which are already responding to that event.
