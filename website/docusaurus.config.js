@@ -23,6 +23,12 @@ module.exports = {
           position: 'left',
         },
         {
+          to: '/docs/api/modules',
+          label: 'API',
+          activeBasePath: 'docs/api',
+          position: 'left',
+        },
+        {
           href: 'https://github.com/grissius/protocat',
           position: 'right',
           className: 'header-github-link',
@@ -41,12 +47,24 @@ module.exports = {
       additionalLanguages: ['protobuf'],
     },
   },
+  plugins: [
+    [
+      'docusaurus-plugin-typedoc',
+
+      // Plugin / TypeDoc options
+      {
+        entryPoints: ['../src/index.ts'],
+        tsconfig: '../tsconfig.json',
+        exclude: ['../src/lib/misc/*'],
+        excludeInternal: true
+      },
+    ],
+  ],
   presets: [
     [
       '@docusaurus/preset-classic',
       {
         docs: {
-          homePageId: '/docs/wiki/installation',
           sidebarPath: require.resolve('./sidebars.js'),
         },
         theme: {
