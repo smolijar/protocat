@@ -6,7 +6,7 @@
 
 Modern, minimalist type-safe gRPC framework for Node.js
 
-[![](https://flat.badgen.net/travis/grissius/protocat/master)](https://travis-ci.com/github/grissius/protocat)
+[![](https://flat.badgen.net/github/status/grissius/protocat)](https://github.com/grissius/protocat/actions/workflows/node.js.yml)
 [![](https://flat.badgen.net/npm/v/protocat)](https://www.npmjs.com/package/protocat)
 [![](https://flat.badgen.net/codecov/c/github/grissius/protocat)](https://codecov.io/gh/grissius/protocat)
 [![](https://flat.badgen.net/codeclimate/maintainability/grissius/protocat)](https://codeclimate.com/github/grissius/protocat)
