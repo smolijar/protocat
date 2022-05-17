@@ -85,8 +85,9 @@ export class ProtoCat<Extension = unknown> {
     creds: grpc.ServerCredentials = grpc.ServerCredentials.createInsecure()
   ) {
     this.registerHandlers()
-    await bindAsync(this.server, address, creds)
+    const port = await bindAsync(this.server, address, creds)
     this.server.start()
+    return port
   }
 
   /**

@@ -10,7 +10,8 @@ import {
 } from '../../../lib/server/middleware/cache'
 import { performance } from 'perf_hooks'
 import { ServiceImplementation } from '../../../lib/server/call'
-import { createClient } from '../../../lib/client/client'
+import { createClient, UpdatedClient } from '../../../lib/client/client'
+import { testAddress } from '../util'
 
 const inf =
   <R>() =>
@@ -19,7 +20,7 @@ const inf =
 const uniq = <T>(xs: T[]) => Array.from(new Set(xs))
 type UnwrapP<T> = T extends Promise<infer _> ? _ : T
 
-const ADDR = '0.0.0.0:3000'
+const address = testAddress()
 let c: Record<string, Buffer> = {}
 const cache = inf<CacheImplementation>()({
   set: jest.fn((k, v) => {
@@ -47,11 +48,13 @@ describe('Cache middleware', () => {
         call.initialMetadata.set('cache-key', hash)
       })
     )
-    await app.start(ADDR)
+    const port = await app.start(address.getAddress())
+    address.setPort(port)
   })
   describe('Caching', () => {
-    const client = createClient(GreetingClient, ADDR)
+    let client: UpdatedClient<GreetingClient>
     beforeEach(() => {
+      client = createClient(GreetingClient, address.getAddress())
       cache.set.mockClear()
       cache.get.mockClear()
       cache.hash.mockClear()

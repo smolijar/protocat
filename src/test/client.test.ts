@@ -19,6 +19,7 @@ import {
 } from '@grpc/grpc-js/build/src/server-call'
 import { metadataInterceptor } from '../lib/client/interceptors/metadata-interceptor'
 import { accessLogInterceptor } from '../lib/client/interceptors/access-log-interceptor'
+import { testAddress } from './server/util'
 
 const createMeta = (x: Record<string, string>) => {
   const meta = new Metadata()
@@ -30,7 +31,7 @@ const createMeta = (x: Record<string, string>) => {
 
 const spyInterceptors = jest.fn()
 
-const ADDR = '0.0.0.0:3000'
+const address = testAddress()
 describe('Client', () => {
   let server: Server
   beforeAll(async () => {
@@ -84,7 +85,8 @@ describe('Client', () => {
       clientStream,
       bidi,
     })
-    await bindAsync(server, ADDR, ServerCredentials.createInsecure())
+    const port = await bindAsync(server, address.getAddress(), ServerCredentials.createInsecure())
+    address.setPort(port)
     server.start()
   })
   afterAll(() => tryShutdown(server))
@@ -96,24 +98,24 @@ describe('Client', () => {
     const st = await next()
     spyInterceptors(`${ctx.options.method_definition.path} <-- (${st.details})`)
   })
-  const singleClient = createClient(
+  const getSingleClient = () => createClient(
     GreetingClient,
-    ADDR,
+    address.getAddress(),
     ChannelCredentials.createInsecure(),
     {
       interceptors: [metadataInt, alInt],
     }
   )
-  const nestedClient = createClient({ foo: GreetingClient }, ADDR, undefined, {
+  const getNestedClient = () => createClient({ foo: GreetingClient }, address.getAddress(), undefined, {
     interceptors: [metadataInt, alInt],
   })
-  for (const [label, client] of [
-    ['Single', singleClient],
-    ['Multi', nestedClient.foo],
+  for (const [label, getClient] of [
+    ['Single', getSingleClient],
+    ['Multi', () => getNestedClient().foo],
   ] as const) {
     describe(`${label} service client`, () => {
       test('Unary', async () => {
-        const { status, metadata, response } = await client.unary(req =>
+        const { status, metadata, response } = await getClient().unary(req =>
           req.setName('Meow')
         )
         expect(response.getName()).toBe('Meow!')
@@ -121,7 +123,7 @@ describe('Client', () => {
         expect(status.metadata.getMap().trailing).toBe('unary')
       })
       test('ServerStream', async () => {
-        const { status, metadata, call } = client.serverStream(req =>
+        const { status, metadata, call } = getClient().serverStream(req =>
           req.setName('meow')
         )
         const acc: string[] = []
@@ -132,7 +134,7 @@ describe('Client', () => {
         expect((await status).metadata.getMap().trailing).toBe('serverStream')
       })
       test('ClientStream', async () => {
-        const { status, metadata, call, response } = client.clientStream()
+        const { status, metadata, call, response } = getClient().clientStream()
         'meeoaw!'.split('').forEach(c => {
           call.write(new Hello().setName(c))
         })
@@ -144,7 +146,7 @@ describe('Client', () => {
         expect((await status).metadata.getMap().trailing).toBe('clientStream')
       })
       test('Bidi', async () => {
-        const { status, metadata, call } = await client.bidi()
+        const { status, metadata, call } = await getClient().bidi()
         const acc: string[] = []
         call.on('data', res => acc.push(res.getName()))
         ;['miow', 'meow', 'meeoui'].forEach(m => {

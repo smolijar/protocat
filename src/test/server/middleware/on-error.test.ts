@@ -10,6 +10,7 @@ import {
   StatusObject,
 } from '@grpc/grpc-js'
 import { Hello } from '../../../../dist/test/api/v1/hello_pb'
+import { testAddress } from '../util'
 
 const createError = (x: string) => {
   const metadata = new Metadata()
@@ -17,7 +18,9 @@ const createError = (x: string) => {
   return Object.assign(new Error(x), { metadata })
 }
 
-const ADDR = '0.0.0.0:3000'
+const address = testAddress()
+const getClient = () => new GreetingClient(address.getAddress(), ChannelCredentials.createInsecure())
+
 describe('Error handling', () => {
   const app = new ProtoCat()
   let lastError: any = null
@@ -76,16 +79,15 @@ describe('Error handling', () => {
       call.trailingMetadata.set('trailing', `${call.type}-trailing`)
       return next()
     })
-    await app.start(ADDR, ServerCredentials.createInsecure())
+    const port = await app.start(address.getAddress(), ServerCredentials.createInsecure())
+    address.setPort(port)
   })
   describe('Unary', () => {
-    const client = new GreetingClient(ADDR, ChannelCredentials.createInsecure())
-
     const clientMeta = new Metadata()
     clientMeta.set('catch', 'true')
     test('Caught error does not reach client', async () => {
       await new Promise<Hello>((resolve, reject) => {
-        client.unary(new Hello(), clientMeta, (err, res) =>
+        getClient().unary(new Hello(), clientMeta, (err, res) =>
           err ? reject(err) : resolve(res)
         )
       })
@@ -97,7 +99,7 @@ describe('Error handling', () => {
       test('Throws', async () => {
         await expect(
           new Promise<Hello>((resolve, reject) => {
-            const call = client.unary(new Hello(), (err, res) =>
+            const call = getClient().unary(new Hello(), (err, res) =>
               err ? reject(err) : resolve(res)
             )
             status = new Promise(resolve => call.on('status', resolve))
@@ -124,16 +126,12 @@ describe('Error handling', () => {
   })
   for (const type of ['sync', 'stream']) {
     describe(`ServerStream (${type} error)`, () => {
-      const client = new GreetingClient(
-        ADDR,
-        ChannelCredentials.createInsecure()
-      )
       test('Caught error does not reach client', async () => {
         const clientMeta = new Metadata()
         clientMeta.set('catch', 'true')
         clientMeta.set('type', type)
         await new Promise<void>((resolve, reject) => {
-          const call = client.serverStream(new Hello(), clientMeta)
+          const call = getClient().serverStream(new Hello(), clientMeta)
           call.on('data', hello => hello)
           call.on('end', () => resolve())
           call.on('error', (e: any) => (e.code === 1 ? resolve() : reject(e)))
@@ -151,7 +149,7 @@ describe('Error handling', () => {
         test('Throws', async () => {
           await expect(
             new Promise<void>((resolve, reject) => {
-              const call = client.serverStream(new Hello(), clientMeta)
+              const call = getClient().serverStream(new Hello(), clientMeta)
               call.on('end', () => resolve())
               metadata = new Promise(resolve => call.on('metadata', resolve))
 
@@ -189,16 +187,12 @@ describe('Error handling', () => {
   }
   for (const type of ['sync', 'stream']) {
     describe(`ClientStream (${type} error)`, () => {
-      const client = new GreetingClient(
-        ADDR,
-        ChannelCredentials.createInsecure()
-      )
       test('Caught error does not reach client', async () => {
         const clientMeta = new Metadata()
         clientMeta.set('catch', 'true')
         clientMeta.set('type', type)
         await new Promise<Hello>((resolve, reject) => {
-          client.clientStream(clientMeta, (err, res) =>
+          getClient().clientStream(clientMeta, (err, res) =>
             err ? reject(err) : resolve(res)
           )
         })
@@ -214,7 +208,7 @@ describe('Error handling', () => {
         test('Throws', async () => {
           await expect(
             new Promise<Hello>((resolve, reject) => {
-              const call = client.clientStream(clientMeta, (err, res) => {
+              const call = getClient().clientStream(clientMeta, (err, res) => {
                 if (err) {
                   status = err
                   reject(err)
@@ -251,16 +245,12 @@ describe('Error handling', () => {
   }
   for (const type of ['sync', 'stream']) {
     describe(`Bidi (${type} error)`, () => {
-      const client = new GreetingClient(
-        ADDR,
-        ChannelCredentials.createInsecure()
-      )
       test('Caught error does not reach client', async () => {
         const clientMeta = new Metadata()
         clientMeta.set('catch', 'true')
         clientMeta.set('type', type)
         await new Promise<void>((resolve, reject) => {
-          const call = client.bidi(clientMeta)
+          const call = getClient().bidi(clientMeta)
           call.on('data', hello => hello)
           call.on('end', () => resolve())
           call.on('error', (e: any) => (e.code === 1 ? resolve() : reject(e)))
@@ -275,7 +265,7 @@ describe('Error handling', () => {
         test('Throws', async () => {
           await expect(
             new Promise<void>((resolve, reject) => {
-              const call = client.bidi(clientMeta)
+              const call = getClient().bidi(clientMeta)
               call.on('end', () => resolve())
               metadata = new Promise(resolve => call.on('metadata', resolve))
               // Does not emit `status`: status object is in error on failure

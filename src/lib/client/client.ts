@@ -34,7 +34,7 @@ type UnaryCall<Req, Res> = (setup?: UnaryRequestSetup<Req>) => Promise<{
   status: grpc.StatusObject
 }>
 type UpdatedClient_<C> = C extends grpc.Client ? UpdatedClient<C> : never
-type UpdatedClient<C extends grpc.Client> = OmitNeverKeys<
+export type UpdatedClient<C extends grpc.Client> = OmitNeverKeys<
   {
     [K in keyof C]: C[K] extends (
       request: infer Req,

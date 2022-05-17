@@ -9,8 +9,9 @@ import {
   ShareLocationRequest,
   ShareLocationResponse,
 } from '../../../dist/test/api/v1/cat_pb'
+import { testAddress } from './util'
 
-const ADDR = '0.0.0.0:3000'
+const address = testAddress()
 describe('CatService (real world example)', () => {
   let app: ProtoCat
   test('Setup and run server', async () => {
@@ -63,10 +64,11 @@ describe('CatService (real world example)', () => {
         })
       },
     })
-    await app.start(ADDR)
+    const port = await app.start(address.getAddress())
+    address.setPort(port)
   })
   test('GetCat (Unary)', async () => {
-    const client = new CatClient(ADDR, ChannelCredentials.createInsecure())
+    const client = new CatClient(address.getAddress(), ChannelCredentials.createInsecure())
     const cat = await new Promise<Cat>((resolve, reject) => {
       client.getCat(new GetCatRequest().setName('Proto'), (err, res) =>
         err ? reject(err) : resolve(res)
@@ -75,7 +77,7 @@ describe('CatService (real world example)', () => {
     expect(cat.getName()).toBe('Proto')
   })
   test('WatchCats (client-cancelled server side stream)', async () => {
-    const client = new CatClient(ADDR, ChannelCredentials.createInsecure())
+    const client = new CatClient(address.getAddress(), ChannelCredentials.createInsecure())
     await new Promise<void>((resolve, reject) => {
       const call = client.watchCats(new WatchCatsRequest())
       const seenCats: string[] = []
@@ -90,7 +92,7 @@ describe('CatService (real world example)', () => {
     })
   })
   test('ShareLocation (client streaming)', async () => {
-    const client = new CatClient(ADDR, ChannelCredentials.createInsecure())
+    const client = new CatClient(address.getAddress(), ChannelCredentials.createInsecure())
     const res = await new Promise<ShareLocationResponse>((resolve, reject) => {
       const call = client.shareLocation((err, res) =>
         err ? reject(err) : resolve(res)
@@ -103,7 +105,7 @@ describe('CatService (real world example)', () => {
     expect(res.getTravelledMeters()).toBeGreaterThan(0)
   })
   test('FeedCats (bidi)', async () => {
-    const client = new CatClient(ADDR, ChannelCredentials.createInsecure())
+    const client = new CatClient(address.getAddress(), ChannelCredentials.createInsecure())
     await new Promise<ShareLocationResponse>((resolve, reject) => {
       const call = client.feedCats()
       let fedCats = 0

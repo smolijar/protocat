@@ -11,8 +11,11 @@ import {
 } from '@grpc/grpc-js'
 import { Hello } from '../../../dist/test/api/v1/hello_pb'
 import { performance } from 'perf_hooks'
+import { testAddress } from './util'
 
-const ADDR = '0.0.0.0:3000'
+const address = testAddress()
+const getClient = () => new GreetingClient(address.getAddress(), ChannelCredentials.createInsecure())
+
 describe('HelloService (boring, predictable and exhaustive)', () => {
   let app: ProtoCat
   test('createServer', () => {
@@ -80,7 +83,8 @@ describe('HelloService (boring, predictable and exhaustive)', () => {
     })
   })
   test('start', async () => {
-    await app.start(ADDR, ServerCredentials.createInsecure())
+    const port = await app.start(address.getAddress(), ServerCredentials.createInsecure())
+    address.setPort(port)
   })
   const responseTimeSet = (m: Metadata) =>
     expect(Number(m.getMap()['response-time'])).toBeGreaterThan(0)
@@ -88,14 +92,13 @@ describe('HelloService (boring, predictable and exhaustive)', () => {
     expect(Number(m.getMap()['start-time'])).toBeGreaterThan(0)
 
   describe('Unary', () => {
-    const client = new GreetingClient(ADDR, ChannelCredentials.createInsecure())
     let metadata: Promise<Metadata> = null as any
     let status: Promise<StatusObject> = null as any
     const clientMeta = new Metadata()
     clientMeta.set('client', 'unaryClientMeta')
     test('Reqest & response', async () => {
       const hello = await new Promise<Hello>((resolve, reject) => {
-        const call = client.unary(
+        const call = getClient().unary(
           new Hello().setName('X'),
           clientMeta,
           (err, res) => (err ? reject(err) : resolve(res))
@@ -122,7 +125,6 @@ describe('HelloService (boring, predictable and exhaustive)', () => {
     })
   })
   describe('ServerStream', () => {
-    const client = new GreetingClient(ADDR, ChannelCredentials.createInsecure())
     let metadata: Promise<Metadata> = null as any
     let status: Promise<StatusObject> = null as any
     const clientMeta = new Metadata()
@@ -130,7 +132,7 @@ describe('HelloService (boring, predictable and exhaustive)', () => {
     test('Response stream', async () => {
       let acc = ''
       await new Promise<void>((resolve, reject) => {
-        const call = client.serverStream(new Hello(), clientMeta)
+        const call = getClient().serverStream(new Hello(), clientMeta)
         metadata = new Promise(resolve => call.on('metadata', resolve))
         status = new Promise(resolve => call.on('status', resolve))
         call.on('data', (hello: Hello) => {
@@ -160,14 +162,13 @@ describe('HelloService (boring, predictable and exhaustive)', () => {
     })
   })
   describe('ClientStream', () => {
-    const client = new GreetingClient(ADDR, ChannelCredentials.createInsecure())
     let metadata: Promise<Metadata> = null as any
     let status: Promise<StatusObject> = null as any
     const clientMeta = new Metadata()
     clientMeta.set('client', 'clientStreamClientMeta')
     test('Client stream', async () => {
       const res = await new Promise<Hello>((resolve, reject) => {
-        const call = client.clientStream(clientMeta, (err, res) =>
+        const call = getClient().clientStream(clientMeta, (err, res) =>
           err ? reject(err) : resolve(res)
         )
         metadata = new Promise(resolve => call.on('metadata', resolve))
@@ -198,14 +199,13 @@ describe('HelloService (boring, predictable and exhaustive)', () => {
     })
   })
   describe('Bidi', () => {
-    const client = new GreetingClient(ADDR, ChannelCredentials.createInsecure())
     let metadata: Promise<Metadata> = null as any
     let status: Promise<StatusObject> = null as any
     const clientMeta = new Metadata()
     clientMeta.set('client', 'bidiClientMeta')
     test('Bidi stream', async () => {
       await new Promise<Hello>((resolve, reject) => {
-        const call = client.bidi(clientMeta)
+        const call = getClient().bidi(clientMeta)
         let cnt = 0
         call.write(new Hello().setName('foo'))
         metadata = new Promise(resolve => call.on('metadata', resolve))

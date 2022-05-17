@@ -9,8 +9,9 @@ import {
   ShareLocationRequest,
   ShareLocationResponse,
 } from '../../../dist/test/api/v1/cat_pb'
+import { testAddress } from './util'
 
-const ADDR = '0.0.0.0:3000'
+const address = testAddress()
 describe('Server Status', () => {
   let app: ProtoCat
   test('Unknown error maps to UNKNOWN gRPC code', async () => {
@@ -18,8 +19,8 @@ describe('Server Status', () => {
     app.addService({ getCat: CatService.getCat }, {
       getCat: () => Promise.reject({}),
     })
-    await app.start(ADDR)
-    const client = new CatClient(ADDR, ChannelCredentials.createInsecure())
+    address.setPort(await app.start(address.getAddress()))
+    const client = new CatClient(address.getAddress(), ChannelCredentials.createInsecure())
     const error = await new Promise<ServiceError | null>((resolve, reject) => {
       client.getCat(new GetCatRequest().setName('Proto'), (err, res) =>
         err ? resolve(err) : resolve(null)
@@ -42,8 +43,8 @@ describe('Server Status', () => {
         }
       }
     })
-    await app.start(ADDR)
-    const client = new CatClient(ADDR, ChannelCredentials.createInsecure())
+    address.setPort(await app.start(address.getAddress()))
+    const client = new CatClient(address.getAddress(), ChannelCredentials.createInsecure())
     const error = await new Promise<ServiceError | null>((resolve, reject) => {
       client.getCat(new GetCatRequest().setName('Proto'), (err, res) =>
         err ? resolve(err) : resolve(null)
