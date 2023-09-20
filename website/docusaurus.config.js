@@ -1,8 +1,8 @@
 module.exports = {
   title: 'ProtoCat',
   tagline: 'Modern, minimalist type-safe gRPC framework for Node.js',
-  url: 'https://proto.cat',
-  baseUrl: '/',
+  url: 'https://smolijar.github.io/protocat/',
+  baseUrl: '/protocat/',
   onBrokenLinks: 'throw',
   favicon: 'img/favicon.ico',
   organizationName: 'grissius',
@@ -56,7 +56,7 @@ module.exports = {
         entryPoints: ['../src/index.ts'],
         tsconfig: '../tsconfig.json',
         exclude: ['../src/lib/misc/*'],
-        excludeInternal: true
+        excludeInternal: true,
       },
     ],
   ],

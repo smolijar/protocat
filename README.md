@@ -1,6 +1,6 @@
 <div align="center">
 
-[![](https://raw.githubusercontent.com/grissius/protocat/master/website/static/img/logo.svg)](https://proto.cat)
+[![](https://raw.githubusercontent.com/grissius/protocat/master/website/static/img/logo.svg)](https://smolijar.github.io/protocat/)
 
 # ProtoCat
 
@@ -13,7 +13,7 @@ Modern, minimalist type-safe gRPC framework for Node.js
 [![](https://flat.badgen.net/github/license/grissius/protocat)](https://github.com/grissius/protocat/blob/master/LICENSE)
 [![](https://flat.badgen.net/david/dep/grissius/protocat)](https://david-dm.org/grissius/protocat)
 [![](https://flat.badgen.net/snyk/grissius/protocat/master)](https://snyk.io/vuln/npm:protocat)
-[![](https://flat.badgen.net/badge/%F0%9F%93%91%20docs/pages/cyan)](https://proto.cat)
+[![](https://flat.badgen.net/badge/%F0%9F%93%91%20docs/pages/cyan)](https://smolijar.github.io/protocat/)
 
 </div>
 
@@ -39,7 +39,7 @@ app.start('0.0.0.0:3000')
 
 ## Docs
 
-Learn more about ProtoCat in [docs](https://proto.cat/).
+Learn more about ProtoCat in [docs](https://smolijar.github.io/protocat//).
 
 ## Support
 

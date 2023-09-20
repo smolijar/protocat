@@ -18,7 +18,7 @@
     "backend",
     "server"
   ],
-  "homepage": "https://proto.cat",
+  "homepage": "https://smolijar.github.io/protocat/",
   "scripts": {
     "build": "tsc",
     "build:proto": "rm -rf ./dist/test/api && mkdir -p ./dist/test/api && grpc_tools_node_protoc --js_out=import_style=commonjs,binary:./dist/test/api --ts_out=generate_package_definition:./dist/test/api --grpc_out=grpc_js:./dist/test/api -I ./src/test/api ./src/test/api/**/*.proto",
@@ -43,7 +43,7 @@
     "@ackee/styleguide-backend-config": "^0.2.2",
     "@types/jest": "^26.0.23",
     "codecov": "^3.8.2",
-    "docusaurus-plugin-typedoc": "^0.17.5",
+    "docusaurus-plugin-typedoc": "^0.20.1",
     "google-protobuf": "^3.20.1",
     "grpc_tools_node_protoc_ts": "^5.3.2",
     "grpc-tools": "^1.11.2",
@@ -52,8 +52,8 @@
     "lint-staged": "^11.0.0",
     "prettier": "^2.3.0",
     "ts-jest": "^26.5.6",
-    "typedoc": "^0.22.15",
-    "typedoc-plugin-markdown": "^3.12.1",
+    "typedoc": "^0.25.1",
+    "typedoc-plugin-markdown": "3.16",
     "typescript": "^4.6.4"
   }
 }
